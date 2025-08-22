@@ -1,13 +1,26 @@
 import * as PIXI from "pixi.js";
+import { PARTICLE_CONFIG } from "./config";
 
-const FRICTION = 0.86;
-const MOVE_SPEED = 0.1;
+// Local type definition to avoid import issues
+interface Position {
+  x: number;
+  y: number;
+}
 
 export class Particle {
-  constructor(pos, texture) {
+  sprite: PIXI.Sprite;
+  savedX: number;
+  savedY: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+
+  constructor(pos: Position, texture: PIXI.Texture) {
     this.sprite = new PIXI.Sprite(texture);
-    this.sprite.scale.set(0.2);
-    this.sprite.tint = 0x000000
+    this.sprite.scale.set(PARTICLE_CONFIG.scale);
+    this.sprite.tint = PARTICLE_CONFIG.tint;
 
     this.savedX = pos.x;
     this.savedY = pos.y;
@@ -18,15 +31,15 @@ export class Particle {
 
     this.vx = 0;
     this.vy = 0;
-    this.radius = 10;
+    this.radius = PARTICLE_CONFIG.radius;
   }
 
-  draw() {
-    this.vx += (this.savedX - this.x) * MOVE_SPEED;
-    this.vy += (this.savedY - this.y) * MOVE_SPEED;
+  draw(): void {
+    this.vx += (this.savedX - this.x) * PARTICLE_CONFIG.moveSpeed;
+    this.vy += (this.savedY - this.y) * PARTICLE_CONFIG.moveSpeed;
 
-    this.vx *= FRICTION;
-    this.vy *= FRICTION;
+    this.vx *= PARTICLE_CONFIG.friction;
+    this.vy *= PARTICLE_CONFIG.friction;
 
     this.x += this.vx;
     this.y += this.vy;
