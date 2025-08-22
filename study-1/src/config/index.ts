@@ -15,7 +15,7 @@ export const PARTICLE_CONFIG = {
 // テキスト生成に関する設定
 export const TEXT_CONFIG = {
   fontSize: 300,       // フォントサイズ（ピクセル単位）
-  fontName: 'Hind',    // 使用するフォント名
+  fontName: 'Noto Sans',    // 使用するフォント名
   density: 2,          // パーティクルの密度（値が小さいほど密度が高い）
   defaultText: 'PNRM', // 表示するデフォルトテキスト
 } as const;
@@ -31,7 +31,7 @@ export const RENDERER_CONFIG = {
 
 // シェーダーフィルターの設定
 export const FILTER_CONFIG = {
-  blur: 10,             // ブラーエフェクトの強度
+  blur: 1,             // ブラーエフェクトの強度
   threshold: 0.5,      // 閾値フィルターの境界値
   mr: 0.0 / 255.0,     // 赤色成分（0-1の範囲）
   mg: 0.0 / 255.0,     // 緑色成分（0-1の範囲）

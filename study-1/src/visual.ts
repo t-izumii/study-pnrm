@@ -124,22 +124,22 @@ export class Visual {
   animate(): void {
     for (let i = 0; i < this.particles.length; i++) {
       const item = this.particles[i];
-      
+
       // マウスとパーティクル間の距離ベクトルを計算
       const dx = this.mouse.x - item.x;
       const dy = this.mouse.y - item.y;
       const dist = Math.sqrt(dx * dx + dy * dy); // ユークリッド距離
-      const minDist = item.radius + this.mouse.radius; // 影響範囲の合計
+      const minDist = this.mouse.radius;
 
       // マウスの影響範囲内にある場合、反発力を計算
       if (dist < minDist) {
         // マウスからパーティクルへの角度を計算
         const angle = Math.atan2(dy, dx);
-        
+
         // 反発後の目標位置を計算
         const tx = item.x + Math.cos(angle) * minDist;
         const ty = item.y + Math.sin(angle) * minDist;
-        
+
         // マウス位置からの反発ベクトルを計算
         const ax = tx - this.mouse.x;
         const ay = ty - this.mouse.y;

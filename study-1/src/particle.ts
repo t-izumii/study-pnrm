@@ -33,7 +33,7 @@ export class Particle {
   vy: number;
   
   // 衝突判定用の半径
-  radius: number;
+  // radius: number;
 
   /**
    * パーティクルを初期化
@@ -57,7 +57,6 @@ export class Particle {
     // 物理パラメータの初期化
     this.vx = 0;  // X方向の速度
     this.vy = 0;  // Y方向の速度
-    this.radius = PARTICLE_CONFIG.radius;
   }
 
   /**

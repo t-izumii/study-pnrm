@@ -30,7 +30,7 @@ export class FontLoader {
       // CSSテキストを解析してフォントファイルのURLを抽出
       const css = await response.text();
       const matchUrls = css.match(/url\(.+?\)/g);
-      
+
       if (!matchUrls) {
         throw new Error("フォントが見つかりませんでした");
       }
@@ -38,11 +38,11 @@ export class FontLoader {
       // 最初のフォントURLを使用してFontFaceオブジェクトを作成
       const url = matchUrls[0];
       const font = new FontFace(FONT_CONFIG.familyName, url);
-      
+
       // フォントを読み込み、ブラウザに追加
       await font.load();
       document.fonts.add(font);
-      
+
       console.log(`フォント "${FONT_CONFIG.familyName}" の読み込みが完了しました`);
     } catch (error) {
       // フォント読み込み失敗時もアプリケーションを継続
