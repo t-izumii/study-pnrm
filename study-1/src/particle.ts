@@ -1,39 +1,24 @@
 import * as PIXI from "pixi.js";
 
-const FRICTION: number = 0.86;
+const FRICTION = 0.86;
 const MOVE_SPEED = 0.1;
 
 export class Particle {
-  sprite: PIXI.Graphics | PIXI.Sprite
-  savedX: number
-  savedY: number
-  x: number
-  y: number
-  vx: number
-  vy: number
-  radius: number
-
-  constructor(pos: {x: number, y: number}, texture: any) {
-    if (texture instanceof PIXI.Graphics) {
-      this.sprite = new PIXI.Graphics();
-      this.sprite.circle(0, 0, 2);
-      this.sprite.fill(0x000000);
-    } else {
-      this.sprite = new PIXI.Sprite(texture);
-      this.sprite.scale.set(0.2);
-      this.sprite.tint = 0x000000;
-    }
+  constructor(pos, texture) {
+    this.sprite = new PIXI.Sprite(texture);
+    this.sprite.scale.set(0.2);
+    this.sprite.tint = 0x000000
 
     this.savedX = pos.x;
     this.savedY = pos.y;
-
     this.x = pos.x;
     this.y = pos.y;
     this.sprite.x = this.x;
     this.sprite.y = this.y;
+
     this.vx = 0;
     this.vy = 0;
-    this.radius = 1;
+    this.radius = 10;
   }
 
   draw() {

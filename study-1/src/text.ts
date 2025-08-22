@@ -1,54 +1,42 @@
 export class Text {
-  canvas: HTMLCanvasElement
-  ctx: CanvasRenderingContext2D
   constructor() {
     this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'absolute';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.pointerEvents = 'none';
-    this.canvas.style.zIndex = '-1';
-    
-    this.ctx = this.canvas.getContext('2d')!;
+
+    this.ctx = this.canvas.getContext('2d');
   }
 
-  setText(str: string, density: number, stageWidth: number, stageHeight: number) {
-    if (!this.ctx) {
-      console.error('Canvas context not available');
-      return [];
-    }
-    
+  setText(str, density, stageWidth, stageHeight ) {
     this.canvas.width = stageWidth;
     this.canvas.height = stageHeight;
 
     const myText = str;
-    const fontWidth = 700;
-    const fontSize = 200;
+    const fontWidth = 100;
+    const fontSize = 300;
     const fontName = 'Hind';
 
-    this.ctx.clearRect(0, 0, stageWidth, stageHeight);
-    this.ctx.font = `${fontWidth} ${fontSize}px ${fontName}`;
-    this.ctx.fillStyle = `rgba(0,0,0,0.1)`;
+    this.ctx.clearRect(0,0, stageWidth, stageHeight);
+    this.ctx.font = `${fontSize}px ${fontName}`;
+    this.ctx.fillStyle = `rgba(0,0,0,1.0)`;
+
     this.ctx.textBaseline = 'middle';
     const fontPos = this.ctx.measureText(myText);
 
     this.ctx.fillText(
       myText,
-      stageWidth / 2 - fontPos.width / 2,
-      fontPos.actualBoundingBoxAscent + fontPos.actualBoundingBoxDescent + (stageHeight - fontSize) / 2
+      (stageWidth - fontPos.width) / 2,
+      fontPos.actualBoundingBoxAscent + fontPos.actualBoundingBoxDescent + ((stageHeight - fontSize) / 2)
     );
 
-    const particles = this._dotPos(density, stageWidth, stageHeight);
-    console.log('Generated particles:', particles.length);
-    return particles;
+    return this.dotPos(density, stageWidth, stageHeight);
   }
 
-  _dotPos(density: number, stageWidth: number, stageHeight: number) {
+  dotPos(density, stageWidth, stageHeight) {
     const imageData = this.ctx.getImageData(
-      0,0,stageWidth, stageHeight
+      0, 0, stageWidth, stageHeight
     ).data;
 
     const particles = [];
+
     let i = 0;
     let width = 0;
     let pixel;
@@ -56,24 +44,24 @@ export class Text {
     for (let height = 0; height < stageHeight; height += density) {
       ++i;
 
-      const slide = i % 2 === 0;
+      const slide = (i % 2) == 0;
       width = 0;
 
-      if (slide) {
+      if (slide == 1) {
         width += 6;
       }
 
-      for (let width = 0; width < stageWidth; width += density) {
-        pixel = imageData[((width + (height * stageWidth)) * 4 ) + 3];
-
-        if (pixel != 0 && 
-            width > 0 &&
-            width < stageWidth &&
-            height > 0 &&
-            height < stageHeight ) {
+      for (width; width < stageWidth; width += density) {
+        pixel = imageData[((width + (height * stageWidth)) * 4 ) - 1 ];
+        if (pixel != 0 &&
+          width > 0 &&
+          width < stageWidth &&
+          height > 0 &&
+          height < stageHeight
+        ) {
           particles.push({
-            x:width,
-            y:height,
+            x: width,
+            y: height,
           })
         }
       }
