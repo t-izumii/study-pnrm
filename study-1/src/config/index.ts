@@ -31,7 +31,7 @@ export const RENDERER_CONFIG = {
 
 // シェーダーフィルターの設定
 export const FILTER_CONFIG = {
-  blur: 1,             // ブラーエフェクトの強度
+  blur: 10,             // ブラーエフェクトの強度
   threshold: 0.5,      // 閾値フィルターの境界値
   mr: 0.0 / 255.0,     // 赤色成分（0-1の範囲）
   mg: 0.0 / 255.0,     // 緑色成分（0-1の範囲）
