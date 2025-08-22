@@ -84,6 +84,7 @@ export class RendererManager {
     const thresholdFilter = new PIXI.Filter(undefined, fragSource, uniformData);
     
     // ステージにフィルターを適用
+    // this.stage.filters = [blurFilter];
     this.stage.filters = [blurFilter, thresholdFilter];
     this.stage.filterArea = this.renderer.screen;
     
