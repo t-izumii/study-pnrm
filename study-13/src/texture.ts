@@ -24,7 +24,23 @@ export class Texture {
   constructor() {
     // HTMLCanvasElementを動的に作成
     this.canvas = document.createElement("canvas");
-    this.ctx = this.canvas.getContext("2d")!;
+    this.ctx = this.canvas.getContext("2d", { willReadFrequently: true })!;
+  }
+
+  /**
+   * キャンバスを安全にクリアする
+   */
+  private clearCanvas(width: number, height: number): void {
+    // キャンバスサイズをリセットすることで完全にクリア
+    this.canvas.width = width;
+    this.canvas.height = height;
+    
+    // 念のためにclearRectも実行
+    this.ctx.clearRect(0, 0, width, height);
+    
+    // コンテキストの状態をリセット
+    this.ctx.globalCompositeOperation = 'source-over';
+    this.ctx.globalAlpha = 1;
   }
 
   /**
@@ -42,12 +58,8 @@ export class Texture {
     stageWidth: number,
     stageHeight: number
   ): Position[] {
-    // キャンバスサイズをステージサイズに合わせる
-    this.canvas.width = stageWidth;
-    this.canvas.height = stageHeight;
-
-    // キャンバスをクリアして新しいテキストを描画
-    this.ctx.clearRect(0, 0, stageWidth, stageHeight);
+    // キャンバスを安全にクリアしてサイズを調整
+    this.clearCanvas(stageWidth, stageHeight);
 
     // フォントとスタイルを設定
     this.ctx.font = `${TEXT_CONFIG.fontSize}px ${TEXT_CONFIG.fontName}`;
@@ -77,17 +89,15 @@ export class Texture {
     stageHeight: number,
     callback: (positions: Position[]) => void
   ): void {
-    // キャンバスサイズをステージサイズに合わせる
-    this.canvas.width = stageWidth;
-    this.canvas.height = stageHeight;
-
-    // キャンバスをクリアして新しいテキストを描画
-    this.ctx.clearRect(0, 0, stageWidth, stageHeight);
+    // キャンバスを安全にクリアしてサイズを調整
+    this.clearCanvas(stageWidth, stageHeight);
 
     const image = new Image();
     image.src = path;
 
     image.onload = () => {
+      // 再度キャンバスをクリア（画像読み込み完了後）
+      this.clearCanvas(stageWidth, stageHeight);
       // 画像のアスペクト比を計算
       const imageAspect = image.width / image.height;
       const canvasAspect = stageWidth / stageHeight;

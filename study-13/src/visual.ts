@@ -25,6 +25,13 @@ interface MouseState {
   radius: number;
 }
 
+// ガベージコレクション用の型定義
+declare global {
+  interface Window {
+    gc?: () => void;
+  }
+}
+
 export class Visual {
   // テキスト処理用のインスタンス
   private text: Texture;
@@ -76,23 +83,98 @@ export class Visual {
    * @param stage - PIXI.jsのメインステージ
    */
   show(stageWidth: number, stageHeight: number, stage: PIXI.Container): void {
-    // 既存のコンテナを削除（メモリリーク防止）
-    if (this.container) {
-      stage.removeChild(this.container);
-    }
+    console.log('リサイズ開始: クリーンアップ実行');
+    
+    // 強制的なクリーンアップを実行
+    this.forceCleanup(stage);
+    
+    // 少し待ってから画像読み込みを開始
+    setTimeout(() => {
+      // テキストからパーティクル配置座標を非同期で生成
+      this.text.setImage(
+        "/src/image.png",
+        TEXT_CONFIG.density,
+        stageWidth,
+        stageHeight,
+        (positions: Position[]) => {
+          console.log(`新しいパーティクル座標: ${positions.length}個`);
+          // 画像読み込み完了後のコールバック
+          this.pos = positions;
+          this.createParticles(stage);
+        }
+      );
+    }, 50); // 50ms待機
+  }
 
-    // テキストからパーティクル配置座標を非同期で生成
-    this.text.setImage(
-      "/src/image.png",
-      TEXT_CONFIG.density,
-      stageWidth,
-      stageHeight,
-      (positions: Position[]) => {
-        // 画像読み込み完了後のコールバック
-        this.pos = positions;
-        this.createParticles(stage);
+  /**
+   * 強制的なクリーンアップ処理（リサイズ時用）
+   * 
+   * @param stage - PIXI.jsのメインステージ
+   */
+  private forceCleanup(stage: PIXI.Container): void {
+    console.log(`クリーンアップ前: パーティクル${this.particles.length}個, コンテナ: ${this.container ? 'true' : 'false'}`);
+    
+    // 1. アニメーションを停止するためパーティクル配列を即座クリア
+    this.particles = [];
+    this.pos = [];
+    
+    // 2. コンテナの完全な削除
+    if (this.container) {
+      try {
+        // コンテナ内の全ての子要素を手動で削除
+        while (this.container.children.length > 0) {
+          const child = this.container.children[0];
+          this.container.removeChild(child);
+          if (child.destroy) {
+            child.destroy();
+          }
+        }
+        
+        // ステージからコンテナを削除
+        if (this.container.parent) {
+          this.container.parent.removeChild(this.container);
+        }
+        
+        // コンテナを破棄
+        this.container.destroy({ 
+          children: true, 
+          texture: false, 
+          baseTexture: false 
+        });
+        
+        this.container = undefined;
+        console.log('コンテナを強制破棄しました');
+      } catch (error) {
+        console.warn('コンテナ破棄中にエラー:', error);
+        this.container = undefined;
       }
-    );
+    }
+    
+    // 3. ステージの全ての子要素をチェックして残留を削除
+    const childrenToRemove = [];
+    for (let i = stage.children.length - 1; i >= 0; i--) {
+      const child = stage.children[i];
+      if (child instanceof PIXI.ParticleContainer) {
+        childrenToRemove.push(child);
+      }
+    }
+    
+    childrenToRemove.forEach(child => {
+      try {
+        stage.removeChild(child);
+        child.destroy({ children: true, texture: false, baseTexture: false });
+        console.log('orphanコンテナを削除しました');
+      } catch (error) {
+        console.warn('orphanコンテナ削除中にエラー:', error);
+      }
+    });
+    
+    // 4. メモリクリーンアップ
+    if (typeof window !== 'undefined' && window.gc) {
+      window.gc();
+    }
+    
+    console.log('強制クリーンアップ完了');
   }
 
   /**
@@ -139,8 +221,21 @@ export class Visual {
    * 4. パーティクルの物理更新と描画を実行
    */
   animate(): void {
-    for (let i = 0; i < this.particles.length; i++) {
-      const item = this.particles[i];
+    // パーティクル配列の安全性チェック
+    if (!this.particles || this.particles.length === 0) {
+      return; // パーティクルがない場合は早期リターン
+    }
+
+    // パーティクル配列のコピーを作成（リサイズ中の変更から保護）
+    const particles = [...this.particles];
+    
+    for (let i = 0; i < particles.length; i++) {
+      const item = particles[i];
+      
+      // パーティクルの有効性をチェック
+      if (!item || !item.sprite || item.sprite.destroyed) {
+        continue; // 無効なパーティクルはスキップ
+      }
 
       // マウスとパーティクル間の距離ベクトルを計算
       const dx = this.mouse.x - item.x;

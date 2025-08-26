@@ -25,6 +25,10 @@ class App {
   // 現在の画面サイズ
   private stageWidth: number = 0;
   private stageHeight: number = 0;
+  
+  // リサイズデバウンス用
+  private resizeTimer: NodeJS.Timeout | null = null;
+  private isResizing: boolean = false;
 
   constructor() {
     this.init();
@@ -72,7 +76,27 @@ class App {
    * ウィンドウサイズ変更時に自動でレイアウトを調整
    */
   private setupEventListeners(): void {
-    this.eventManager.addResizeListener(this.resize.bind(this));
+    this.eventManager.addResizeListener(this.debouncedResize.bind(this));
+  }
+
+  /**
+   * デバウンス機能付きリサイズ処理
+   * 連続したリサイズイベントを適切に間引きして処理
+   */
+  private debouncedResize(): void {
+    // 現在リサイズ中の場合はタイマーをリセット
+    if (this.resizeTimer) {
+      clearTimeout(this.resizeTimer);
+    }
+    
+    this.isResizing = true;
+    
+    // 150ms待ってから実際のリサイズ処理を実行
+    this.resizeTimer = setTimeout(() => {
+      this.resize();
+      this.isResizing = false;
+      this.resizeTimer = null;
+    }, 150);
   }
 
   /**
@@ -85,8 +109,17 @@ class App {
    */
   private resize(): void {
     // ブラウザウィンドウのサイズを取得
-    this.stageWidth = document.body.clientWidth;
-    this.stageHeight = document.body.clientHeight;
+    const newWidth = document.body.clientWidth;
+    const newHeight = document.body.clientHeight;
+
+    // サイズが変更されていない場合は処理をスキップ
+    if (this.stageWidth === newWidth && this.stageHeight === newHeight) {
+      console.log('サイズ変更なし: スキップ');
+      return;
+    }
+
+    this.stageWidth = newWidth;
+    this.stageHeight = newHeight;
 
     console.log(`画面サイズ変更: ${this.stageWidth}x${this.stageHeight}`);
 
