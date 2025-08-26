@@ -1,0 +1,8 @@
+<!-- Placeholder SVG for video poster -->
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" fill="#1e1e2e"/>
+  <polygon points="250,150 250,250 350,200" fill="white"/>
+  <text x="50%" y="75%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="16" font-family="Arial">
+    Video Poster
+  </text>
+</svg>

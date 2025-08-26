@@ -146,7 +146,7 @@ export class Visual {
         // マウスが移動している場合のみ反発を適用
         if (mouseSpeed > 0.5) { // 最小移動量の闾値
           // 距離に応じた反発の強さ
-          const forceStrength = (minDist - dist) / minDist * mouseSpeed * 0.3;
+          const forceStrength = (minDist - dist) / minDist * mouseSpeed * 0.8;
           
           // マウスの移動方向に正規化
           const moveDirectionX = mouseDx / mouseSpeed;
