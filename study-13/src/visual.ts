@@ -88,22 +88,19 @@ export class Visual {
     // 強制的なクリーンアップを実行
     this.forceCleanup(stage);
     
-    // 少し待ってから画像読み込みを開始
-    setTimeout(() => {
-      // テキストからパーティクル配置座標を非同期で生成
-      this.text.setImage(
-        "/src/image.png",
-        TEXT_CONFIG.density,
-        stageWidth,
-        stageHeight,
-        (positions: Position[]) => {
-          console.log(`新しいパーティクル座標: ${positions.length}個`);
-          // 画像読み込み完了後のコールバック
-          this.pos = positions;
-          this.createParticles(stage);
-        }
-      );
-    }, 50); // 50ms待機
+    // 即座に画像読み込みを開始
+    this.text.setImage(
+      "/src/image.png",
+      TEXT_CONFIG.density,
+      stageWidth,
+      stageHeight,
+      (positions: Position[]) => {
+        console.log(`新しいパーティクル座標: ${positions.length}個`);
+        // 画像読み込み完了後のコールバック
+        this.pos = positions;
+        this.createParticles(stage);
+      }
+    );
   }
 
   /**
