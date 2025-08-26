@@ -1,57 +1,113 @@
 precision highp float;
 
-uniform sampler2D uTexture;
-uniform vec2 uMouse;
-uniform float uTime;
-uniform float uDistortion;
-uniform vec2 uTextureSize;  // テクスチャの実際のサイズ
-uniform vec2 uPlaneSize;    // 表示領域のサイズ
-uniform vec2 uVelocity;
+// ========================================
+// ユニフォーム変数（CPU側から受け取る値）
+// ========================================
+uniform sampler2D uTexture;       // 表示する画像テクスチャ
+uniform sampler2D uPreviousFlow;  // フローマップ（各ピクセルの流れ情報）
+uniform float uDistortion;        // 歪みの強さ（0.0〜1.0、大きいほど強い歪み）
+uniform vec2 uTextureSize;        // テクスチャの実際のサイズ（ピクセル単位）
+uniform vec2 uPlaneSize;          // 表示領域のサイズ（ピクセル単位）
 
-varying vec2 vUv;
+// ========================================
+// バリイング変数（頂点シェーダーから補間された値）
+// ========================================
+varying vec2 vUv;  // 現在処理中のピクセルのUV座標（0.0〜1.0）
 
 void main() {
     vec2 uv = vUv;
-
-    // テクスチャと表示領域のアスペクト比を計算
-    float textureAspect = uTextureSize.x / uTextureSize.y;
-    float planeAspect = uPlaneSize.x / uPlaneSize.y;
-
-    // object-fit: contain の実装
-    vec2 scale = vec2(1.0);
-    vec2 offset = vec2(0.0);
-
+    
+    // ========================================
+    // STEP 1: アスペクト比の計算と調整
+    // ========================================
+    // 画像と表示領域のアスペクト比を計算
+    float textureAspect = uTextureSize.x / uTextureSize.y;  // 画像の横/縦
+    float planeAspect = uPlaneSize.x / uPlaneSize.y;        // 画面の横/縦
+    
+    // アスペクト比を保持するためのスケールとオフセット
+    vec2 scale = vec2(1.0);   // 拡大縮小率
+    vec2 offset = vec2(0.0);  // 中央配置のためのオフセット
+    
+    // object-fit: contain と同じ動作
+    // 画像全体が表示領域に収まるように調整
     if (planeAspect > textureAspect) {
-        // 表示領域が横に広い場合（左右に余白）
+        // 画面が画像より横長の場合
+        // → 左右に余白ができる
         scale.x = textureAspect / planeAspect;
-        offset.x = (1.0 - scale.x) * 0.5;
+        offset.x = (1.0 - scale.x) * 0.5;  // 中央に配置
     } else {
-        // 表示領域が縦に長い場合（上下に余白）
+        // 画面が画像より縦長の場合
+        // → 上下に余白ができる
         scale.y = planeAspect / textureAspect;
-        offset.y = (1.0 - scale.y) * 0.5;
+        offset.y = (1.0 - scale.y) * 0.5;  // 中央に配置
     }
-
-    // UV座標を調整
+    
+    // UV座標を調整（アスペクト比を保持した座標に変換）
     vec2 adjustedUv = (uv - offset) / scale;
-
-    // 調整されたUV座標が範囲外の場合は透明にする
+    
+    // ========================================
+    // STEP 2: 画像範囲外のピクセルを除外
+    // ========================================
+    // adjustedUvが0〜1の範囲外なら画像の外側
     if (adjustedUv.x < 0.0 || adjustedUv.x > 1.0 ||
         adjustedUv.y < 0.0 || adjustedUv.y > 1.0) {
-        discard;
+        discard;  // このピクセルを描画しない（透明にする）
     }
-
-    // テクスチャをサンプリング
+    
+    // ========================================
+    // STEP 3: フローマップから歪み情報を取得
+    // ========================================
+    // 現在のピクセル位置でのフロー値（流れの方向と強さ）を取得
+    vec2 flow = texture2D(uPreviousFlow, uv).rg;
+    // flow.x: X方向の流れ（-1.0 = 左向き, 0.0 = 静止, +1.0 = 右向き）
+    // flow.y: Y方向の流れ（-1.0 = 下向き, 0.0 = 静止, +1.0 = 上向き）
+    
+    // ========================================
+    // STEP 4: 歪みエフェクトの適用（核心部分！）
+    // ========================================
+    // UV座標をフロー値でオフセットする
+    adjustedUv += flow * uDistortion;
+    
+    // 動作原理の例：
+    // 1. flow = (0.1, 0.0) の場合（右向きの流れ）
+    //    adjustedUv = (0.5, 0.5) + (0.1, 0.0) * 0.2 = (0.52, 0.5)
+    //    → 元の位置より右側（0.52）のピクセルから色を取得
+    //    → 右側の画像が現在位置に表示される
+    //    → 結果：画像が左に流れたように見える（逆方向！）
+    //
+    // 2. flow = (0.0, -0.1) の場合（下向きの流れ）
+    //    adjustedUv = (0.5, 0.5) + (0.0, -0.1) * 0.2 = (0.5, 0.48)
+    //    → 元の位置より下側（0.48）のピクセルから色を取得
+    //    → 下側の画像が現在位置に表示される
+    //    → 結果：画像が上に流れたように見える（逆方向！）
+    
+    // ========================================
+    // STEP 5: 歪んだ位置から画像の色を取得
+    // ========================================
     vec4 color = texture2D(uTexture, adjustedUv);
-
-    // アルファチャンネルの処理を改善
-    // アルファが低い値の場合は完全に透明にする（アンチエイリアスのエッジを除去）
-    float alphaThreshold = 0.1;  // より高い閾値でエッジをシャープに
-    if (color.a < alphaThreshold) {
-        discard;
+    // adjustedUvの位置にある画像のRGBA値を取得
+    
+    // ========================================
+    // STEP 6: アルファ値のチェック（透明部分の処理）
+    // ========================================
+    if (color.a < 0.1) {
+        discard;  // ほぼ透明（アルファ値が0.1未満）なら描画しない
     }
-
-
-
-    // アルファを1.0に強制してエッジをクリーンに
+    
+    // ========================================
+    // STEP 7: 最終的な色を出力
+    // ========================================
     gl_FragColor = vec4(color.rgb, 1.0);
+    // color.rgb: 元画像の色をそのまま使用
+    // 1.0: アルファ値を1.0に固定（完全不透明）
+    
+    // ========================================
+    // デバッグ用の可視化オプション（コメントアウトして使用）
+    // ========================================
+    // フローマップを直接表示（赤=X方向、緑=Y方向）
+    // gl_FragColor = vec4(flow * 0.5 + 0.5, 0.0, 1.0);
+    
+    // 歪みの強さを表示（白いほど強い歪み）
+    // float distortionAmount = length(flow);
+    // gl_FragColor = vec4(vec3(distortionAmount), 1.0);
 }

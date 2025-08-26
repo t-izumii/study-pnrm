@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
-import flowmapVertexShader from "./vertex.glsl";
-import flowmapFragmentShader from "./fragment.glsl";
+import flowmapVertexShader from "./flowmapVertex.glsl";
+import flowmapFragmentShader from "./flowmapFragment.glsl";
 
 import { lerp } from "./utility";
 
@@ -24,9 +24,9 @@ export class WebGLApp {
 
   constructor(canvas?: HTMLCanvasElement) {
     this.clock = new THREE.Clock();
-    this.mouse = new THREE.Vector2(0.5, 0.5);
-    this.currentMouse = new THREE.Vector2(0.5, 0.5);
-    this.velocity = new THREE.Vector2(0.5, 0.5);
+    this.mouse = new THREE.Vector2(0.0, 0.0);
+    this.currentMouse = new THREE.Vector2(0.0, 0.0);
+    this.velocity = new THREE.Vector2(0.0, 0.0);
 
     try {
       this.init(canvas);
@@ -85,7 +85,7 @@ export class WebGLApp {
   }
 
   private createMaterial(): void {
-    const texture = this.loadTexture("src/image.png");
+    const texture = this.loadTexture("src/test.png");
 
     this.material = new THREE.ShaderMaterial({
       uniforms: {
@@ -97,7 +97,8 @@ export class WebGLApp {
         uTextureSize: { value: new THREE.Vector2(1, 1) }, // テクスチャサイズ（loadTextureで更新）
         uPlaneSize: {
           value: new THREE.Vector2(window.innerWidth, window.innerHeight),
-        }, // 表示領域サイズ
+        },
+        uPreviousFlow: { value: null },
       },
       vertexShader,
       fragmentShader,
@@ -144,10 +145,10 @@ export class WebGLApp {
         uTime: { value: 0 },
         uDecay: { value: 0.96 },
         uInfluenceRadius: { value: 0.15 },
-        uStrength: { value: 1.5 },
+        uStrength: { value: 15.0 }, // 強度を大きくしてテスト
       },
-      vertexShader: flowmapVertexShader, // 別途作成が必要
-      fragmentShader: flowmapFragmentShader, // 別途作成が必要
+      vertexShader: flowmapVertexShader,
+      fragmentShader: flowmapFragmentShader,
     });
 
     // 5. Meshを作成
@@ -240,9 +241,30 @@ export class WebGLApp {
     this.velocity.x = lerp(this.velocity.x, rawVelocityX, 0.1);
     this.velocity.y = lerp(this.velocity.y, rawVelocityY, 0.1);
 
+    // flowmap
+    this.flowmapMaterial.uniforms.uPreviousFlow.value =
+      this.flowmapRenderTarget1.texture;
+    this.flowmapMaterial.uniforms.uTime.value = this.clock.getElapsedTime();
+    this.flowmapMaterial.uniforms.uVelocity.value = this.velocity;
+    this.flowmapMaterial.uniforms.uMouse.value = this.mouse;
+
+    // renderer更新
+    this.renderer.setRenderTarget(this.flowmapRenderTarget2);
+    this.renderer.render(this.flowmapScene, this.flowmapCamera);
+    this.renderer.setRenderTarget(null);
+
+    // ping-pong swap
+    const temp = this.flowmapRenderTarget1;
+    this.flowmapRenderTarget1 = this.flowmapRenderTarget2;
+    this.flowmapRenderTarget2 = temp;
+
+    // uniform更新
     this.material.uniforms.uTime.value = this.clock.getElapsedTime();
     this.material.uniforms.uVelocity.value = this.velocity;
+    this.material.uniforms.uPreviousFlow.value =
+      this.flowmapRenderTarget1.texture;
 
+    // renderer更新
     this.renderer.render(this.scene, this.camera);
   };
 
