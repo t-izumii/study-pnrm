@@ -29,7 +29,7 @@ export class ParticleSystem {
       this.particles = [];
     }
 
-    this.container = new PIXI.ParticleContainer();
+    this.container = new PIXI.ParticleContainer(50000);
     this.positions = positions;
 
     for (const position of positions) {

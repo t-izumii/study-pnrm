@@ -40,8 +40,8 @@ export class MouseInteraction {
     const force = this.calculateRepulsionForce(mouse, particle);
 
     if (force) {
-      particle.vx += force.x;
-      particle.vy += force.y;
+      particle.vx -= force.x;
+      particle.vy -= force.y;
     }
   }
 
