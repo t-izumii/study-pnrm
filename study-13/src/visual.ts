@@ -83,11 +83,11 @@ export class Visual {
    * @param stage - PIXI.jsのメインステージ
    */
   show(stageWidth: number, stageHeight: number, stage: PIXI.Container): void {
-    console.log('リサイズ開始: クリーンアップ実行');
-    
+    console.log("リサイズ開始: クリーンアップ実行");
+
     // 強制的なクリーンアップを実行
     this.forceCleanup(stage);
-    
+
     // 即座に画像読み込みを開始
     this.text.setImage(
       "/src/image.png",
@@ -105,16 +105,20 @@ export class Visual {
 
   /**
    * 強制的なクリーンアップ処理（リサイズ時用）
-   * 
+   *
    * @param stage - PIXI.jsのメインステージ
    */
   private forceCleanup(stage: PIXI.Container): void {
-    console.log(`クリーンアップ前: パーティクル${this.particles.length}個, コンテナ: ${this.container ? 'true' : 'false'}`);
-    
+    console.log(
+      `クリーンアップ前: パーティクル${this.particles.length}個, コンテナ: ${
+        this.container ? "true" : "false"
+      }`
+    );
+
     // 1. アニメーションを停止するためパーティクル配列を即座クリア
     this.particles = [];
     this.pos = [];
-    
+
     // 2. コンテナの完全な削除
     if (this.container) {
       try {
@@ -126,27 +130,27 @@ export class Visual {
             child.destroy();
           }
         }
-        
+
         // ステージからコンテナを削除
         if (this.container.parent) {
           this.container.parent.removeChild(this.container);
         }
-        
+
         // コンテナを破棄
-        this.container.destroy({ 
-          children: true, 
-          texture: false, 
-          baseTexture: false 
+        this.container.destroy({
+          children: true,
+          texture: false,
+          baseTexture: false,
         });
-        
+
         this.container = undefined;
-        console.log('コンテナを強制破棄しました');
+        console.log("コンテナを強制破棄しました");
       } catch (error) {
-        console.warn('コンテナ破棄中にエラー:', error);
+        console.warn("コンテナ破棄中にエラー:", error);
         this.container = undefined;
       }
     }
-    
+
     // 3. ステージの全ての子要素をチェックして残留を削除
     const childrenToRemove = [];
     for (let i = stage.children.length - 1; i >= 0; i--) {
@@ -155,28 +159,28 @@ export class Visual {
         childrenToRemove.push(child);
       }
     }
-    
-    childrenToRemove.forEach(child => {
+
+    childrenToRemove.forEach((child) => {
       try {
         stage.removeChild(child);
         child.destroy({ children: true, texture: false, baseTexture: false });
-        console.log('orphanコンテナを削除しました');
+        console.log("orphanコンテナを削除しました");
       } catch (error) {
-        console.warn('orphanコンテナ削除中にエラー:', error);
+        console.warn("orphanコンテナ削除中にエラー:", error);
       }
     });
-    
+
     // 4. メモリクリーンアップ
-    if (typeof window !== 'undefined' && window.gc) {
+    if (typeof window !== "undefined" && window.gc) {
       window.gc();
     }
-    
-    console.log('強制クリーンアップ完了');
+
+    console.log("強制クリーンアップ完了");
   }
 
   /**
    * パーティクルを作成してステージに追加
-   * 
+   *
    * @param stage - PIXI.jsのメインステージ
    */
   private createParticles(stage: PIXI.Container): void {
@@ -225,10 +229,10 @@ export class Visual {
 
     // パーティクル配列のコピーを作成（リサイズ中の変更から保護）
     const particles = [...this.particles];
-    
+
     for (let i = 0; i < particles.length; i++) {
       const item = particles[i];
-      
+
       // パーティクルの有効性をチェック
       if (!item || !item.sprite || item.sprite.destroyed) {
         continue; // 無効なパーティクルはスキップ

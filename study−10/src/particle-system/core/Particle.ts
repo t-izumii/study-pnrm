@@ -1,4 +1,5 @@
 import * as PIXI from "pixi.js";
+import { PhysicsEngine } from "../physics/PhysicsEngine";
 import type { Position } from "../types/particle-types";
 import { PARTICLE_CONFIG } from "../config/particle-config";
 
@@ -16,6 +17,7 @@ export class Particle {
   y: number;
   vx: number;
   vy: number;
+  private physicsEngine = new PhysicsEngine();
 
   constructor(pos: Position, texture: any) {
     this.sprite = new PIXI.Sprite(texture);
@@ -36,20 +38,6 @@ export class Particle {
   }
 
   draw() {
-    // 復元力の計算：元の位置との差分に比例した力を加える
-    this.vx += (this.savedX - this.x) * PARTICLE_CONFIG.moveSpeed;
-    this.vy += (this.savedY - this.y) * PARTICLE_CONFIG.moveSpeed;
-
-    // 摩擦力の適用：速度を段階的に減衰させる
-    this.vx *= PARTICLE_CONFIG.friction;
-    this.vy *= PARTICLE_CONFIG.friction;
-
-    // 物理演算による位置の更新
-    this.x += this.vx;
-    this.y += this.vy;
-
-    // 画面描画位置をパーティクルの論理位置に同期
-    this.sprite.x = this.x;
-    this.sprite.y = this.y;
+    this.physicsEngine.updatePhysics(this);
   }
 }
