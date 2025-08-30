@@ -208,7 +208,7 @@ export class ParticleApp {
    * ウィンドウリサイズイベントリスナーを設定
    */
   private setupResizeListener(): void {
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       this.handleResize();
     });
   }
@@ -261,7 +261,9 @@ export class ParticleApp {
       window.innerWidth,
       window.innerHeight,
       (positions) => {
-        console.log(`ParticleApp: リサイズ時に${positions.length}個のパーティクルを再生成`);
+        console.log(
+          `ParticleApp: リサイズ時に${positions.length}個のパーティクルを再生成`
+        );
         this.particleSystem!.createParticles(positions, this.app!.stage);
       }
     );
@@ -272,8 +274,8 @@ export class ParticleApp {
    */
   destroy(): void {
     // リサイズイベントリスナーを削除
-    window.removeEventListener('resize', this.handleResize);
-    
+    window.removeEventListener("resize", this.handleResize);
+
     // デバウンスタイマーをクリア
     if (this.resizeDebounceId) {
       clearTimeout(this.resizeDebounceId);
@@ -283,26 +285,5 @@ export class ParticleApp {
       this.app.destroy(true);
     }
     console.log("ParticleApp: アプリケーション終了");
-  }
-
-  /**
-   * PIXI.Applicationインスタンスを取得（高度な操作用）
-   */
-  getPixiApp(): PIXI.Application | undefined {
-    return this.app;
-  }
-
-  /**
-   * FilterManagerインスタンスを取得（高度な操作用）
-   */
-  getFilterManager(): FilterManager | undefined {
-    return this.filterManager;
-  }
-
-  /**
-   * ParticleSystemインスタンスを取得（高度な操作用）
-   */
-  getParticleSystem(): ParticleSystem | undefined {
-    return this.particleSystem;
   }
 }
