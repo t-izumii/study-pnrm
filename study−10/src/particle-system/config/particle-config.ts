@@ -39,7 +39,7 @@ export const FILTER_CONFIG = {
  */
 export const RENDERER_CONFIG = {
   antialias: true, // アンチエイリアシング有効
-  transparent: false, // 透明度無効
+  transparent: true, // 透明度有効
   resolution: window.devicePixelRatio || 1, // デバイス解像度対応
   autoDensity: true, // 自動密度調整
 } as const;

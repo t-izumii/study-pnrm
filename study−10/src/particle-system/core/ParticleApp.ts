@@ -31,17 +31,13 @@ export class ParticleApp {
    * アプリケーション全体を初期化
    *
    * @param selector HTMLセレクター（デフォルト: "[data-particle]"）
-   * @param backgroundColor 背景色（デフォルト: 白）
    */
-  async initialize(
-    selector: string = "[data-particle]",
-    backgroundColor: number = 0xffffff
-  ): Promise<void> {
+  async initialize(selector: string = "[data-particle]"): Promise<void> {
     try {
       console.log("ParticleApp: 初期化開始...");
 
       // PIXI.jsアプリケーション初期化
-      this.setupPixiApp(backgroundColor);
+      this.setupPixiApp();
 
       // フィルター管理初期化・適用
       this.setupFilters();
@@ -65,13 +61,15 @@ export class ParticleApp {
   /**
    * PIXI.jsアプリケーションの初期化
    */
-  private setupPixiApp(backgroundColor: number): void {
-    this.app = new PIXI.Application({
+  private setupPixiApp(): void {
+    const config: any = {
       width: window.innerWidth,
       height: window.innerHeight,
-      backgroundColor,
       ...RENDERER_CONFIG,
-    });
+      backgroundAlpha: 0,
+    };
+
+    this.app = new PIXI.Application(config);
 
     document.body.appendChild(this.app.view as HTMLCanvasElement);
     console.log("ParticleApp: PIXI.jsアプリケーション初期化完了");
