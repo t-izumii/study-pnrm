@@ -22,6 +22,8 @@ export class ParticleApp {
   private filterManager?: FilterManager;
   private particleSystem?: ParticleSystem;
   private textureGenerator?: TextureGenerator;
+  private currentSelector: string = "[data-particle]";
+  private resizeDebounceId?: number;
 
   constructor() {}
 
@@ -49,6 +51,9 @@ export class ParticleApp {
 
       // HTMLからパーティクル生成・アニメーション開始
       await this.generateParticlesFromHTML(selector);
+
+      // リサイズイベントリスナーを設定
+      this.setupResizeListener();
 
       console.log("ParticleApp: 初期化完了！");
     } catch (error) {
@@ -105,6 +110,9 @@ export class ParticleApp {
     if (!this.app || !this.particleSystem || !this.textureGenerator) {
       throw new Error("必要なコンポーネントが初期化されていません");
     }
+
+    // 現在のセレクターを保存
+    this.currentSelector = selector;
 
     return new Promise((resolve, reject) => {
       this.textureGenerator!.generateFromHTMLSelector(
@@ -197,7 +205,29 @@ export class ParticleApp {
   }
 
   /**
-   * リサイズ処理（オプション機能）
+   * ウィンドウリサイズイベントリスナーを設定
+   */
+  private setupResizeListener(): void {
+    window.addEventListener('resize', () => {
+      this.handleResize();
+    });
+  }
+
+  /**
+   * デバウンス付きリサイズ処理
+   */
+  private handleResize(): void {
+    if (this.resizeDebounceId) {
+      clearTimeout(this.resizeDebounceId);
+    }
+
+    this.resizeDebounceId = window.setTimeout(() => {
+      this.resize();
+    }, 100);
+  }
+
+  /**
+   * リサイズ処理とパーティクル再生成
    */
   resize(width?: number, height?: number): void {
     if (!this.app) {
@@ -208,14 +238,47 @@ export class ParticleApp {
     const newWidth = width || window.innerWidth;
     const newHeight = height || window.innerHeight;
 
+    // PIXIアプリケーションリサイズ
     this.app.renderer.resize(newWidth, newHeight);
-    console.log(`ParticleApp: リサイズ ${newWidth}x${newHeight}`);
+
+    // パーティクルを新しいサイズで再生成
+    this.regenerateParticles();
+
+    console.log(`ParticleApp: リサイズ完了 ${newWidth}x${newHeight}`);
+  }
+
+  /**
+   * パーティクルを現在のウィンドウサイズで再生成
+   */
+  private regenerateParticles(): void {
+    if (!this.textureGenerator || !this.particleSystem || !this.app) {
+      return;
+    }
+
+    this.textureGenerator.generateFromHTMLSelector(
+      this.currentSelector,
+      PARTICLE_GENERATION_CONFIG.density,
+      window.innerWidth,
+      window.innerHeight,
+      (positions) => {
+        console.log(`ParticleApp: リサイズ時に${positions.length}個のパーティクルを再生成`);
+        this.particleSystem!.createParticles(positions, this.app!.stage);
+      }
+    );
   }
 
   /**
    * アプリケーション終了・クリーンアップ
    */
   destroy(): void {
+    // リサイズイベントリスナーを削除
+    window.removeEventListener('resize', this.handleResize);
+    
+    // デバウンスタイマーをクリア
+    if (this.resizeDebounceId) {
+      clearTimeout(this.resizeDebounceId);
+    }
+
     if (this.app) {
       this.app.destroy(true);
     }

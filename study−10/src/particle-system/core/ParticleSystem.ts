@@ -8,7 +8,6 @@ import { MOUSE_CONFIG } from "../config/particle-config";
 export class ParticleSystem {
   private particles: Particle[] = [];
   private container?: PIXI.ParticleContainer;
-  private positions: Position[] = [];
   private mouse: MouseState;
   private texture: any;
   private mouseInteraction = new MouseInteraction();
@@ -30,7 +29,6 @@ export class ParticleSystem {
     }
 
     this.container = new PIXI.ParticleContainer(50000);
-    this.positions = positions;
 
     for (const position of positions) {
       const particle = new Particle(position, this.texture);

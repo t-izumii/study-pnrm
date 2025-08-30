@@ -10,8 +10,8 @@ import { FILTER_CONFIG } from "../config/particle-config";
  * - フィルター設定の動的変更
  */
 export class FilterManager {
-  private blurFilter: PIXI.filters.BlurFilter;
-  private thresholdFilter: PIXI.Filter;
+  private blurFilter!: PIXI.BlurFilter;
+  private thresholdFilter!: PIXI.Filter;
 
   constructor() {
     this.setupFilters();
@@ -22,7 +22,7 @@ export class FilterManager {
    */
   private setupFilters(): void {
     // ブラーフィルターの設定
-    this.blurFilter = new PIXI.filters.BlurFilter();
+    this.blurFilter = new PIXI.BlurFilter();
     this.blurFilter.blur = FILTER_CONFIG.blur;
     this.blurFilter.autoFit = true;
 
@@ -61,12 +61,19 @@ export class FilterManager {
   }
 
   /**
+   * stageに基本ブラーフィルターを適用
+   */
+  applyToStage(stage: PIXI.Container, renderer: any): void {
+    stage.filters = [this.blurFilter];
+    stage.filterArea = renderer.screen;
+
+    console.log("FilterManager: ブラーフィルターがstageに適用されました");
+  }
+
+  /**
    * stageに高度なフィルター（ブラー+閾値）を適用
    */
-  applyAdvancedFiltersToStage(
-    stage: PIXI.Container,
-    renderer: PIXI.Renderer
-  ): void {
+  applyAdvancedFiltersToStage(stage: PIXI.Container, renderer: any): void {
     // ブラー + 閾値フィルターを適用
     stage.filters = [this.blurFilter, this.thresholdFilter];
     stage.filterArea = renderer.screen;
@@ -74,6 +81,14 @@ export class FilterManager {
     console.log(
       "FilterManager: 高度なフィルター（ブラー+閾値）がstageに適用されました"
     );
+  }
+
+  /**
+   * ブラー強度を変更
+   */
+  setBlurStrength(blur: number): void {
+    this.blurFilter.blur = blur;
+    console.log(`FilterManager: ブラー強度を${blur}に設定`);
   }
 
   /**

@@ -1,4 +1,3 @@
-import type { Force, Position } from "../types/particle-types";
 import type { Particle } from "../core/Particle";
 import { PARTICLE_CONFIG } from "../config/particle-config";
 
