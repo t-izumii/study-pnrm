@@ -22,3 +22,24 @@ export const PARTICLE_CONFIG = {
 export const MOUSE_CONFIG = {
   radius: 50, // マウスカーソルの影響範囲半径
 } as const;
+
+/**
+ * ビジュアルフィルターの設定
+ */
+export const FILTER_CONFIG = {
+  blur: 5, // ブラー効果の強度
+  threshold: 0.1, // 閾値フィルターの閾値
+  mr: 0.0, // 閾値フィルター色（赤成分）
+  mg: 0.0, // 閾値フィルター色（緑成分）
+  mb: 0.0, // 閾値フィルター色（青成分）
+} as const;
+
+/**
+ * レンダラーの設定
+ */
+export const RENDERER_CONFIG = {
+  antialias: true, // アンチエイリアシング有効
+  transparent: false, // 透明度無効
+  resolution: window.devicePixelRatio || 1, // デバイス解像度対応
+  autoDensity: true, // 自動密度調整
+} as const;
