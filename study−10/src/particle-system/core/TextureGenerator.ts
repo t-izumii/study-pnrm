@@ -114,7 +114,9 @@ export class TextureGenerator {
     this.ctx.fillText(
       str,
       (stageWidth - fontPos.width) / 2, // 水平中央
-      stageHeight / 2 // 垂直中央
+      fontPos.actualBoundingBoxAscent +
+        fontPos.actualBoundingBoxDescent +
+        (stageHeight - parseInt(fontString)) / 2 // 垂直中央
     );
 
     // 描画されたテキストからパーティクル座標を抽出

@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { ParticleSystem } from "./ParticleSystem";
 import { TextureGenerator } from "./TextureGenerator";
 import { FilterManager } from "./FilterManager";
+import type { ParticleAppOptions } from "../types/particle-types";
 import {
   PARTICLE_GENERATION_CONFIG,
   RENDERER_CONFIG,
@@ -18,6 +19,9 @@ import {
  * - アニメーションループの制御
  */
 export class ParticleApp {
+  private containerSelector: string;
+  private containerElement?: HTMLElement;
+  private options: ParticleAppOptions;
   private app?: PIXI.Application;
   private filterManager?: FilterManager;
   private particleSystem?: ParticleSystem;
@@ -25,16 +29,23 @@ export class ParticleApp {
   private currentSelector: string = "[data-particle]";
   private resizeDebounceId?: number;
 
-  constructor() {}
+  constructor(containerSelector: string, options: ParticleAppOptions) {
+    this.containerSelector = containerSelector;
+    this.options = options;
+
+    this.initialize();
+  }
 
   /**
    * アプリケーション全体を初期化
    *
    * @param selector HTMLセレクター（デフォルト: "[data-particle]"）
    */
-  async initialize(selector: string = "[data-particle]"): Promise<void> {
+  async initialize(): Promise<void> {
     try {
       console.log("ParticleApp: 初期化開始...");
+
+      this.findContainerElement();
 
       // PIXI.jsアプリケーション初期化
       this.setupPixiApp();
@@ -46,7 +57,7 @@ export class ParticleApp {
       this.setupParticleSystem();
 
       // HTMLからパーティクル生成・アニメーション開始
-      await this.generateParticlesFromHTML(selector);
+      await this.generateParticlesFromOptions();
 
       // リサイズイベントリスナーを設定
       this.setupResizeListener();
@@ -58,21 +69,37 @@ export class ParticleApp {
     }
   }
 
+  private findContainerElement(): void {
+    this.containerElement = document.querySelector(this.containerSelector);
+  }
+
   /**
    * PIXI.jsアプリケーションの初期化
    */
   private setupPixiApp(): void {
+    if (!this.containerElement) {
+      throw new Error("コンテナ要素が設定されていません");
+    }
+
+    // コンテナ要素のサイズを取得
+    const rect = this.containerElement.getBoundingClientRect();
+    const width = rect.width || window.innerWidth;
+    const height = rect.height || window.innerHeight;
+
     const config: any = {
-      width: window.innerWidth,
-      height: window.innerHeight,
+      width,
+      height,
       ...RENDERER_CONFIG,
       backgroundAlpha: 0,
     };
 
     this.app = new PIXI.Application(config);
 
-    document.body.appendChild(this.app.view as HTMLCanvasElement);
-    console.log("ParticleApp: PIXI.jsアプリケーション初期化完了");
+    // 指定されたコンテナ要素に追加
+    this.containerElement.appendChild(this.app.view as HTMLCanvasElement);
+    console.log(
+      `ParticleApp: PIXI.jsアプリケーション初期化完了 (${width}x${height})`
+    );
   }
 
   /**
@@ -101,43 +128,41 @@ export class ParticleApp {
     console.log("ParticleApp: パーティクルシステム初期化完了");
   }
 
-  /**
-   * HTMLからパーティクル生成とアニメーション開始
-   */
-  private async generateParticlesFromHTML(selector: string): Promise<void> {
+  private async generateParticlesFromOptions(): Promise<void> {
     if (!this.app || !this.particleSystem || !this.textureGenerator) {
       throw new Error("必要なコンポーネントが初期化されていません");
     }
 
-    // 現在のセレクターを保存
-    this.currentSelector = selector;
+    const width = this.app.renderer.width;
+    const height = this.app.renderer.height;
 
-    return new Promise((resolve, reject) => {
-      this.textureGenerator!.generateFromHTMLSelector(
-        selector,
+    if (this.options.type === "text") {
+      const fontSize = this.options.size || 100;
+      const fontFamily = this.options.font || "Arial";
+      const fontWeight = this.options.weight || "normal";
+      const text = this.options.text || "TEST";
+
+      const fontString = `${fontWeight} ${fontSize}px ${fontFamily}`;
+
+      const positions = this.textureGenerator.setTextWithFont(
+        text,
+        fontString,
         PARTICLE_GENERATION_CONFIG.density,
-        window.innerWidth,
-        window.innerHeight,
-        (positions) => {
-          try {
-            console.log(
-              `ParticleApp: ${positions.length}個のパーティクル座標を生成`
-            );
-
-            // パーティクル作成
-            this.particleSystem!.createParticles(positions, this.app!.stage);
-
-            // アニメーションループ開始
-            this.startAnimationLoop();
-
-            console.log("ParticleApp: アニメーション開始");
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        }
+        width,
+        height
       );
-    });
+
+      console.log(`ParticleApp: ${positions.length}個のパーティクル座標を生成`);
+
+      // パーティクル作成
+      this.particleSystem.createParticles(positions, this.app.stage);
+
+      // アニメーションループ開始
+      this.startAnimationLoop();
+    } else if (this.options.type === "image") {
+      // 画像処理は後で実装
+      throw new Error("画像タイプは未実装です");
+    }
   }
 
   /**

@@ -59,8 +59,12 @@ import "./style.css";
 import { ParticleApp } from "./particle-system";
 
 async function main() {
-  const app = new ParticleApp();
-  await app.initialize();
+  const app = new ParticleApp(".js-canvasParticle", {
+    type: "text",
+    text: "test",
+    font: "arial",
+    weight: 500,
+  });
 }
 
 main().catch(console.error);

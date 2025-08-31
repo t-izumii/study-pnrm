@@ -4,8 +4,6 @@ body {
 }
 
 canvas {
-  position: absolute;
-  inset: 0;
 }
 
 img {

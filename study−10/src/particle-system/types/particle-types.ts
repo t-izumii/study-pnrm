@@ -2,6 +2,15 @@
  * パーティクルシステムで使用する型定義
  */
 
+export interface ParticleAppOptions {
+  type: "text" | "image";
+  text?: string; // type="text"の場合
+  font?: string; // フォント名
+  weight?: number | string; // フォントウェイト
+  size?: number; // フォントサイズ
+  imageSrc?: string; // type="image"の場合
+}
+
 /**
  * 2D座標を表現するインターフェース
  * パーティクルの位置、マウスの位置などで使用
