@@ -12,6 +12,7 @@ async function main() {
   const app2 = new ParticleApp(".js-ParticleImg", {
     type: "image",
     imageSrc: "/image.png",
+    width: "600",
   });
 }
 

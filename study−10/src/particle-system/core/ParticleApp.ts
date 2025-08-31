@@ -137,6 +137,9 @@ export class ParticleApp {
     const width = this.app.renderer.width;
     const height = this.app.renderer.height;
 
+    const imageWidth = this.options.width || width;
+    const imageHeight = this.options.height || height;
+
     if (this.options.type === "text") {
       const fontSize = this.options.size || 100;
       const fontFamily = this.options.font || "Arial";
@@ -170,8 +173,8 @@ export class ParticleApp {
         this.textureGenerator!.setImage(
           this.options.imageSrc!,
           PARTICLE_GENERATION_CONFIG.density,
-          width,
-          height,
+          imageWidth,
+          imageHeight,
           (positions) => {
             console.log(
               `ParticleApp: 画像から${positions.length}個のパーティクル座標を生成`

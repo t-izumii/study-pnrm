@@ -9,6 +9,8 @@ export interface ParticleAppOptions {
   weight?: number | string; // フォントウェイト
   size?: number; // フォントサイズ
   imageSrc?: string; // type="image"の場合
+  width?: number; // 画像用width追加
+  height?: number; // 画像用height追加
 }
 
 /**
