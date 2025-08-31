@@ -123,7 +123,8 @@ export class ParticleApp {
    */
   private setupParticleSystem(): void {
     const texture = PIXI.Texture.WHITE;
-    this.particleSystem = new ParticleSystem(texture);
+    const canvas = this.app?.view as HTMLCanvasElement;
+    this.particleSystem = new ParticleSystem(texture, canvas);
     this.textureGenerator = new TextureGenerator();
     console.log("ParticleApp: パーティクルシステム初期化完了");
   }
@@ -160,8 +161,28 @@ export class ParticleApp {
       // アニメーションループ開始
       this.startAnimationLoop();
     } else if (this.options.type === "image") {
-      // 画像処理は後で実装
-      throw new Error("画像タイプは未実装です");
+      // 画像処理を追加
+      if (!this.options.imageSrc) {
+        throw new Error("画像パスが指定されていません");
+      }
+
+      return new Promise((resolve, reject) => {
+        this.textureGenerator!.setImage(
+          this.options.imageSrc!,
+          PARTICLE_GENERATION_CONFIG.density,
+          width,
+          height,
+          (positions) => {
+            console.log(
+              `ParticleApp: 画像から${positions.length}個のパーティクル座標を生成`
+            );
+
+            this.particleSystem!.createParticles(positions, this.app!.stage);
+            this.startAnimationLoop();
+            resolve();
+          }
+        );
+      });
     }
   }
 

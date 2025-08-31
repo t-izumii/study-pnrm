@@ -1,10 +1,4 @@
 import type { Position } from "../types/particle-types";
-
-// TEXT_CONFIGをローカル定数として定義
-const TEXT_CONFIG = {
-  fontSize: 120,
-  fontName: "Arial",
-};
 export class TextureGenerator {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -25,72 +19,6 @@ export class TextureGenerator {
     // コンテキストの状態をリセット
     this.ctx.globalCompositeOperation = "source-over";
     this.ctx.globalAlpha = 1;
-  }
-
-  generateFromHTMLSelector(
-    selector: string,
-    density: number,
-    stageWidth: number,
-    stageHeight: number,
-    callback: (positions: Position[]) => void
-  ): void {
-    const elements = document.querySelectorAll(selector);
-
-    if (elements.length === 0) {
-      console.warn(`要素が見つかりません: ${selector}`);
-      callback([]);
-      return;
-    }
-
-    // 最初の要素を処理
-    const firstElement = elements[0] as HTMLElement;
-    const texType = firstElement.getAttribute("data-tex");
-
-    // 画像の場合
-    if (texType === "img" && firstElement.tagName.toLowerCase() === "img") {
-      const src = (firstElement as HTMLImageElement).src;
-      if (src) {
-        this.setImage(src, density, stageWidth, stageHeight, callback);
-      } else {
-        console.warn("img要素にsrc属性がありません");
-        callback([]);
-      }
-      return;
-    }
-
-    // テキストの場合
-    if (texType === "text") {
-      const text = firstElement.innerText;
-      if (text) {
-        // CSSスタイル読み取り
-        const computedStyle = window.getComputedStyle(firstElement);
-        const fontSize =
-          parseInt(computedStyle.fontSize) || TEXT_CONFIG.fontSize;
-        const fontFamily = computedStyle.fontFamily || TEXT_CONFIG.fontName;
-        const fontWeight = computedStyle.fontWeight || "normal";
-        const fontStyle = computedStyle.fontStyle || "normal";
-
-        const fontString = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
-
-        // 同期処理でテキストからパーティクル生成
-        const positions = this.setTextWithFont(
-          text,
-          fontString,
-          density,
-          stageWidth,
-          stageHeight
-        );
-        callback(positions);
-      } else {
-        console.warn("テキスト要素に内容がありません");
-        callback([]);
-      }
-      return;
-    }
-
-    // data-tex属性が不正な場合
-    console.warn('data-tex属性が"text"または"img"ではありません');
-    callback([]);
   }
 
   setTextWithFont(
@@ -114,9 +42,7 @@ export class TextureGenerator {
     this.ctx.fillText(
       str,
       (stageWidth - fontPos.width) / 2, // 水平中央
-      fontPos.actualBoundingBoxAscent +
-        fontPos.actualBoundingBoxDescent +
-        (stageHeight - parseInt(fontString)) / 2 // 垂直中央
+      stageHeight / 2 // 垂直中央（シンプル）
     );
 
     // 描画されたテキストからパーティクル座標を抽出
