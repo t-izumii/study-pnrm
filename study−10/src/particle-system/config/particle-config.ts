@@ -13,7 +13,7 @@ export const PARTICLE_CONFIG = {
   moveSpeed: 0.1, // 元の位置に戻る力の強さ
   scale: 3, // パーティクルの表示サイズ倍率
   tint: 0x000000, // パーティクルの色（黒色）
-  radius: 30, // パーティクルの衝突判定半径
+  radius: 1, // パーティクルの衝突判定半径
 } as const;
 
 /**

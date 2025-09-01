@@ -25,10 +25,10 @@ async function main() {
     type: "text",
     text: "TEST",
     weight: 500,
-    density: 3,
-    scale: 1.5,
+    density: 4,
+    scale: 2,
     blur: 0,
-    size: 100,
+    size: 200,
     font: {
       family: "Helvetica", // システムフォント
     },

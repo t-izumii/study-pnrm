@@ -301,7 +301,7 @@ export class ParticleApp {
       return new Promise((resolve, reject) => {
         this.textureGenerator!.setImage(
           this.options.imageSrc!,
-          density,
+          currentSettings.density,
           imageWidth,
           imageHeight,
           (positions) => {
@@ -311,14 +311,14 @@ export class ParticleApp {
 
             this.particleSystem!.createParticles(positions, this.app!.stage);
 
-            // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
+            // スケールを設定（ブレイクポイント対応）
             this.particleSystem!.setParticleScale(particleScale);
 
             this.startAnimationLoop();
 
-            // オプションからブラー強度を設定
-            if (blurStrength !== undefined) {
-              this.setBlurStrength(blurStrength);
+            // ブレイクポイント対応ブラー強度を設定
+            if (currentSettings.blur !== undefined) {
+              this.setBlurStrength(currentSettings.blur);
             }
 
             resolve();
@@ -534,103 +534,5 @@ export class ParticleApp {
       this.app.destroy(true);
     }
     console.log("ParticleApp: アプリケーション終了");
-  }
-
-  private async generateParticlesFromOptions(): Promise<void> {
-    if (!this.app || !this.particleSystem || !this.textureGenerator) {
-      throw new Error("必要なコンポーネントが初期化されていません");
-    }
-
-    const width = this.app.renderer.width;
-    const height = this.app.renderer.height;
-
-    const imageWidth = this.options.width || width;
-    const imageHeight = this.options.height || height;
-
-    // ブレイクポイントを考慮した設定値を取得
-    const currentSettings = this.getCurrentSettings(width);
-    const particleScale = currentSettings.scale * 0.1;
-
-    if (this.options.type === "text") {
-      const fontSize = currentSettings.size; // ブレイクポイント対応サイズ
-      const fontConfig = this.extractFontConfig();
-      const fontFamily = fontConfig.familyName;
-      const fontWeight = this.options.weight || "normal";
-      const text = this.options.text || "TEST";
-
-      const fontString = `${fontWeight} ${fontSize}px "${fontFamily}"`;
-
-      const positions = this.textureGenerator.setTextWithFont(
-        text,
-        fontString,
-        currentSettings.density,
-        width,
-        height
-      );
-
-      console.log(`ParticleApp: ${positions.length}個のパーティクル座標を生成`);
-
-      // パーティクル作成
-      this.particleSystem.createParticles(positions, this.app.stage);
-      
-      // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
-      this.particleSystem.setParticleScale(particleScale);
-
-      // アニメーションループ開始
-      this.startAnimationLoop();
-      
-      // ブレイクポイント対応ブラー強度を設定
-      if (currentSettings.blur !== undefined) {
-        this.setBlurStrength(currentSettings.blur);
-      }
-    } else if (this.options.type === "image") {
-      // 画像処理を追加
-      if (!this.options.imageSrc) {
-        throw new Error("画像パスが指定されていません");
-      }
-
-      return new Promise((resolve, reject) => {
-        this.textureGenerator!.setImage(
-          this.options.imageSrc!,
-          currentSettings.density,
-          imageWidth,
-          imageHeight,
-          (positions) => {
-            console.log(
-              `ParticleApp: 画像から${positions.length}個のパーティクル座標を生成`
-            );
-
-            this.particleSystem!.createParticles(positions, this.app!.stage);
-            
-            // スケールを設定（ブレイクポイント対応）
-            this.particleSystem!.setParticleScale(particleScale);
-            
-            this.startAnimationLoop();
-            
-            // ブレイクポイント対応ブラー強度を設定
-            if (currentSettings.blur !== undefined) {
-              this.setBlurStrength(currentSettings.blur);
-            }
-            
-            resolve();
-          }
-        );
-      });
-    }
-  }
-
-  /**
-   * アニメーションループの開始
-   */
-  private startAnimationLoop(): void {
-    if (!this.app || !this.particleSystem) {
-      throw new Error(
-        "アプリケーションまたはパーティクルシステムが初期化されていません"
-      );
-    }
-
-    this.app.ticker.add(() => {
-      this.particleSystem!.animate();
-    });
   }
 }
