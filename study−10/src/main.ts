@@ -9,13 +9,15 @@ async function main() {
     density: 1,
     scale: 1,
     blur: 1,
-    size: 150,
+    size: 50,
     font: {
       googleFont: {
         familyName: "Noto Sans JP",
         weights: ["500"],
-        subsets: ["latin", "japanese"],
       },
+    },
+    breakpoints: {
+      680: { size: 100 },
     },
   });
 
@@ -23,22 +25,23 @@ async function main() {
     type: "text",
     text: "TEST",
     weight: 500,
-    density: 1,
-    scale: 1,
-    blur: 1,
+    density: 3,
+    scale: 1.5,
+    blur: 0,
+    size: 100,
     font: {
       family: "Helvetica", // システムフォント
     },
   });
 
-  const app3 = new ParticleApp(".js-ParticleImg", {
-    type: "image",
-    imageSrc: "/image.png",
-    width: 600,
-    density: 1,
-    scale: 1,
-    blur: 1,
-  });
+  // const app3 = new ParticleApp(".js-ParticleImg", {
+  //   type: "image",
+  //   imageSrc: "/image.png",
+  //   width: 600,
+  //   density: 1,
+  //   scale: 1,
+  //   blur: 1,
+  // });
 }
 
 main().catch(console.error);

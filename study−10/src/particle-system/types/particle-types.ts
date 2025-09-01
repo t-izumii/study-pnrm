@@ -2,6 +2,14 @@
  * パーティクルシステムで使用する型定義
  */
 
+// ブレイクポイント用の設定型
+export interface BreakpointSettings {
+  density?: number;
+  scale?: number;
+  blur?: number;
+  size?: number; // フォントサイズ
+}
+
 export interface ParticleAppOptions {
   type: "text" | "image";
   text?: string; // type="text"の場合
@@ -23,6 +31,10 @@ export interface ParticleAppOptions {
   density?: number; // パーティクル密度（値が小さいほど密度が高い）
   scale?: number; // パーティクルサイズ倍率
   blur?: number; // ブラー効果の強度
+  // ブレイクポイント設定
+  breakpoints?: {
+    [width: number]: BreakpointSettings;
+  };
 }
 
 /**

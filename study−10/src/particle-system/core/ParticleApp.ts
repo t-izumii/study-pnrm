@@ -126,6 +126,69 @@ export class ParticleApp {
   }
 
   /**
+   * ブレイクポイントに基づいて現在の設定値を取得
+   */
+  private getCurrentSettings(currentWidth: number) {
+    console.log(`getCurrentSettings: 指定された幅 = ${currentWidth}px (window.innerWidth = ${window.innerWidth}px)`);
+    
+    const baseSettings = {
+      density: this.options.density ?? PARTICLE_GENERATION_CONFIG.density,
+      scale: this.options.scale ?? PARTICLE_CONFIG.scale * 10,
+      blur: this.options.blur,
+      size: this.options.size ?? 100
+    };
+    
+    console.log('ベース設定:', baseSettings);
+
+    // ブレイクポイントが設定されていない場合はベース設定を返す
+    if (!this.options.breakpoints) {
+      console.log('ブレイクポイント設定がありません');
+      return baseSettings;
+    }
+    
+    console.log('ブレイクポイント設定:', this.options.breakpoints);
+
+    // ブレイクポイントを幅の昇順でソート
+    const sortedBreakpoints = Object.keys(this.options.breakpoints)
+      .map(Number)
+      .sort((a, b) => a - b);
+      
+    console.log('ソート済みブレイクポイント:', sortedBreakpoints);
+
+    // 現在の幅に適用されるブレイクポイントを検索
+    let activeBreakpoint: number | null = null;
+    for (const breakpoint of sortedBreakpoints) {
+      console.log(`チェック: ${currentWidth} >= ${breakpoint} = ${currentWidth >= breakpoint}`);
+      if (currentWidth >= breakpoint) {
+        activeBreakpoint = breakpoint;
+      } else {
+        break;
+      }
+    }
+    
+    console.log(`アクティブブレイクポイント: ${activeBreakpoint}`);
+
+    // アクティブなブレイクポイントがある場合は設定をマージ
+    if (activeBreakpoint !== null) {
+      const breakpointSettings = this.options.breakpoints[activeBreakpoint];
+      console.log(`ブレイクポイント ${activeBreakpoint}px を適用:`, breakpointSettings);
+      
+      const finalSettings = {
+        density: breakpointSettings.density ?? baseSettings.density,
+        scale: breakpointSettings.scale ?? baseSettings.scale,
+        blur: breakpointSettings.blur ?? baseSettings.blur,
+        size: breakpointSettings.size ?? baseSettings.size
+      };
+      
+      console.log('最終設定:', finalSettings);
+      return finalSettings;
+    }
+
+    console.log('ブレイクポイントが適用されません、ベース設定を使用');
+    return baseSettings;
+  }
+
+  /**
    * PIXI.jsアプリケーションの初期化
    */
   private setupPixiApp(): void {
@@ -192,24 +255,24 @@ export class ParticleApp {
     const imageWidth = this.options.width || width;
     const imageHeight = this.options.height || height;
 
-    // オプションから設定値を取得（デフォルト値として既存の設定を使用）
-    const density = this.options.density ?? PARTICLE_GENERATION_CONFIG.density;
-    const particleScale = (this.options.scale ?? PARTICLE_CONFIG.scale) * 0.1;
-    const blurStrength = this.options.blur;
+    // ブレイクポイントを考慮した設定値を取得（window.widthで比較）
+    const currentSettings = this.getCurrentSettings(window.innerWidth);
+    const particleScale = currentSettings.scale * 0.1;
 
     if (this.options.type === "text") {
-      const fontSize = this.options.size || 100;
+      const fontSize = currentSettings.size; // ブレイクポイント対応サイズ
       const fontConfig = this.extractFontConfig();
       const fontFamily = fontConfig.familyName;
       const fontWeight = this.options.weight || "normal";
       const text = this.options.text || "TEST";
 
       const fontString = `${fontWeight} ${fontSize}px "${fontFamily}"`;
+      console.log(`使用するフォント文字列: ${fontString}`);
 
       const positions = this.textureGenerator.setTextWithFont(
         text,
         fontString,
-        density,
+        currentSettings.density,
         width,
         height
       );
@@ -218,16 +281,16 @@ export class ParticleApp {
 
       // パーティクル作成
       this.particleSystem.createParticles(positions, this.app.stage);
-
-      // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
+      
+      // スケールを設定（ブレイクポイント対応）
       this.particleSystem.setParticleScale(particleScale);
 
       // アニメーションループ開始
       this.startAnimationLoop();
-
-      // オプションからブラー強度を設定
-      if (blurStrength !== undefined) {
-        this.setBlurStrength(blurStrength);
+      
+      // ブレイクポイント対応ブラー強度を設定
+      if (currentSettings.blur !== undefined) {
+        this.setBlurStrength(currentSettings.blur);
       }
     } else if (this.options.type === "image") {
       // 画像処理を追加
@@ -397,22 +460,25 @@ export class ParticleApp {
 
     const width = this.app.renderer.width;
     const height = this.app.renderer.height;
-    const density = this.options.density ?? PARTICLE_GENERATION_CONFIG.density;
-    const particleScale = (this.options.scale ?? PARTICLE_CONFIG.scale * 10) * 0.1;
+    
+    // ブレイクポイントを考慮した設定値を取得（window.widthで比較）
+    const currentSettings = this.getCurrentSettings(window.innerWidth);
+    const particleScale = currentSettings.scale * 0.1;
 
     if (this.options.type === "text") {
-      const fontSize = this.options.size || 100;
+      const fontSize = currentSettings.size;
       const fontConfig = this.extractFontConfig();
       const fontFamily = fontConfig.familyName;
       const fontWeight = this.options.weight || "normal";
       const text = this.options.text || "TEST";
 
       const fontString = `${fontWeight} ${fontSize}px "${fontFamily}"`;
+      console.log(`リサイズ時のフォント文字列: ${fontString}`);
 
       const positions = this.textureGenerator.setTextWithFont(
         text,
         fontString,
-        density,
+        currentSettings.density,
         width,
         height
       );
@@ -422,13 +488,18 @@ export class ParticleApp {
       );
       this.particleSystem.createParticles(positions, this.app.stage);
       this.particleSystem.setParticleScale(particleScale);
+      
+      // ブラー設定を適用
+      if (currentSettings.blur !== undefined) {
+        this.setBlurStrength(currentSettings.blur);
+      }
     } else if (this.options.type === "image" && this.options.imageSrc) {
       const imageWidth = this.options.width || width;
       const imageHeight = this.options.height || height;
 
       this.textureGenerator.setImage(
         this.options.imageSrc,
-        density,
+        currentSettings.density,
         imageWidth,
         imageHeight,
         (positions) => {
@@ -437,6 +508,11 @@ export class ParticleApp {
           );
           this.particleSystem!.createParticles(positions, this.app!.stage);
           this.particleSystem!.setParticleScale(particleScale);
+          
+          // ブラー設定を適用
+          if (currentSettings.blur !== undefined) {
+            this.setBlurStrength(currentSettings.blur);
+          }
         }
       );
     }
@@ -471,13 +547,12 @@ export class ParticleApp {
     const imageWidth = this.options.width || width;
     const imageHeight = this.options.height || height;
 
-    // オプションから設定値を取得（デフォルト値として既存の設定を使用）
-    const density = this.options.density ?? PARTICLE_GENERATION_CONFIG.density;
-    const particleScale = (this.options.scale ?? PARTICLE_CONFIG.scale * 10) * 0.1;
-    const blurStrength = this.options.blur;
+    // ブレイクポイントを考慮した設定値を取得
+    const currentSettings = this.getCurrentSettings(width);
+    const particleScale = currentSettings.scale * 0.1;
 
     if (this.options.type === "text") {
-      const fontSize = this.options.size || 100;
+      const fontSize = currentSettings.size; // ブレイクポイント対応サイズ
       const fontConfig = this.extractFontConfig();
       const fontFamily = fontConfig.familyName;
       const fontWeight = this.options.weight || "normal";
@@ -488,7 +563,7 @@ export class ParticleApp {
       const positions = this.textureGenerator.setTextWithFont(
         text,
         fontString,
-        density,
+        currentSettings.density,
         width,
         height
       );
@@ -504,9 +579,9 @@ export class ParticleApp {
       // アニメーションループ開始
       this.startAnimationLoop();
       
-      // オプションからブラー強度を設定
-      if (blurStrength !== undefined) {
-        this.setBlurStrength(blurStrength);
+      // ブレイクポイント対応ブラー強度を設定
+      if (currentSettings.blur !== undefined) {
+        this.setBlurStrength(currentSettings.blur);
       }
     } else if (this.options.type === "image") {
       // 画像処理を追加
@@ -517,7 +592,7 @@ export class ParticleApp {
       return new Promise((resolve, reject) => {
         this.textureGenerator!.setImage(
           this.options.imageSrc!,
-          density,
+          currentSettings.density,
           imageWidth,
           imageHeight,
           (positions) => {
@@ -527,14 +602,14 @@ export class ParticleApp {
 
             this.particleSystem!.createParticles(positions, this.app!.stage);
             
-            // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
+            // スケールを設定（ブレイクポイント対応）
             this.particleSystem!.setParticleScale(particleScale);
             
             this.startAnimationLoop();
             
-            // オプションからブラー強度を設定
-            if (blurStrength !== undefined) {
-              this.setBlurStrength(blurStrength);
+            // ブレイクポイント対応ブラー強度を設定
+            if (currentSettings.blur !== undefined) {
+              this.setBlurStrength(currentSettings.blur);
             }
             
             resolve();

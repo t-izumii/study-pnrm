@@ -6,7 +6,7 @@ export { FilterManager } from "./core/FilterManager";
 export { ParticleApp } from "./core/ParticleApp";
 export { FontLoader } from "./utils/FontLoader";
 
-export type { Position, MouseState, Force, ParticleAppOptions } from "./types/particle-types";
+export type { Position, MouseState, Force, ParticleAppOptions, BreakpointSettings } from "./types/particle-types";
 
 export {
   PARTICLE_CONFIG,
