@@ -2,16 +2,30 @@ import type { Particle } from "../core/Particle";
 import { PARTICLE_CONFIG } from "../config/particle-config";
 
 export class PhysicsEngine {
-  constructor() {}
+  private friction: number;
+  private moveSpeed: number;
+
+  constructor(friction?: number, moveSpeed?: number) {
+    this.friction = friction ?? PARTICLE_CONFIG.friction;
+    this.moveSpeed = moveSpeed ?? PARTICLE_CONFIG.moveSpeed;
+  }
+
+  /**
+   * 物理パラメータを動的に設定
+   */
+  setParams(friction?: number, moveSpeed?: number): void {
+    if (friction !== undefined) this.friction = friction;
+    if (moveSpeed !== undefined) this.moveSpeed = moveSpeed;
+  }
 
   applyRestoreForce(particle: Particle) {
-    particle.vx += (particle.savedX - particle.x) * PARTICLE_CONFIG.moveSpeed;
-    particle.vy += (particle.savedY - particle.y) * PARTICLE_CONFIG.moveSpeed;
+    particle.vx += (particle.savedX - particle.x) * this.moveSpeed;
+    particle.vy += (particle.savedY - particle.y) * this.moveSpeed;
   }
 
   applyFriction(particle: Particle) {
-    particle.vx *= PARTICLE_CONFIG.friction;
-    particle.vy *= PARTICLE_CONFIG.friction;
+    particle.vx *= this.friction;
+    particle.vy *= this.friction;
   }
 
   updatePosition(particle: Particle) {

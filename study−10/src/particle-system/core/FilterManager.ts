@@ -92,6 +92,14 @@ export class FilterManager {
   }
 
   /**
+   * 闾値フィルターの闾値を変更
+   */
+  setThreshold(threshold: number): void {
+    this.thresholdFilter.uniforms.threshold = threshold;
+    console.log(`FilterManager: 闾値を${threshold}に設定`);
+  }
+
+  /**
    * フィルターの設定をリセット
    */
   resetToDefaults(): void {

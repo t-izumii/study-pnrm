@@ -8,6 +8,8 @@ import {
   PARTICLE_GENERATION_CONFIG,
   PARTICLE_CONFIG,
   RENDERER_CONFIG,
+  MOUSE_CONFIG,
+  FILTER_CONFIG,
 } from "../config/particle-config";
 
 /**
@@ -135,7 +137,12 @@ export class ParticleApp {
       density: this.options.density ?? PARTICLE_GENERATION_CONFIG.density,
       scale: this.options.scale ?? PARTICLE_CONFIG.scale * 10,
       blur: this.options.blur,
-      size: this.options.size ?? 100
+      size: this.options.size ?? 100,
+      mouseRadius: this.options.mouseRadius ?? MOUSE_CONFIG.radius,
+      friction: this.options.friction ?? PARTICLE_CONFIG.friction,
+      moveSpeed: this.options.moveSpeed ?? PARTICLE_CONFIG.moveSpeed,
+      tint: this.options.tint ?? PARTICLE_CONFIG.tint,
+      threshold: this.options.threshold ?? FILTER_CONFIG.threshold
     };
     
     console.log('ベース設定:', baseSettings);
@@ -177,7 +184,12 @@ export class ParticleApp {
         density: breakpointSettings.density ?? baseSettings.density,
         scale: breakpointSettings.scale ?? baseSettings.scale,
         blur: breakpointSettings.blur ?? baseSettings.blur,
-        size: breakpointSettings.size ?? baseSettings.size
+        size: breakpointSettings.size ?? baseSettings.size,
+        mouseRadius: breakpointSettings.mouseRadius ?? baseSettings.mouseRadius,
+        friction: breakpointSettings.friction ?? baseSettings.friction,
+        moveSpeed: breakpointSettings.moveSpeed ?? baseSettings.moveSpeed,
+        tint: breakpointSettings.tint ?? baseSettings.tint,
+        threshold: breakpointSettings.threshold ?? baseSettings.threshold
       };
       
       console.log('最終設定:', finalSettings);
@@ -186,6 +198,36 @@ export class ParticleApp {
 
     console.log('ブレイクポイントが適用されません、ベース設定を使用');
     return baseSettings;
+  }
+
+  /**
+   * 現在の設定をパーティクルシステムに適用
+   */
+  private applyCurrentSettings(settings: any): void {
+    // ブラー強度を設定
+    if (settings.blur !== undefined) {
+      this.setBlurStrength(settings.blur);
+    }
+
+    // 闾値を設定
+    if (settings.threshold !== undefined) {
+      this.setThreshold(settings.threshold);
+    }
+
+    // マウス影響範囲を設定
+    if (settings.mouseRadius !== undefined) {
+      this.setMouseRadius(settings.mouseRadius);
+    }
+
+    // パーティクルの色を設定
+    if (settings.tint !== undefined) {
+      this.setParticleTint(settings.tint);
+    }
+
+    // 物理パラメータを設定
+    if (settings.friction !== undefined || settings.moveSpeed !== undefined) {
+      this.setPhysicsParams(settings.friction, settings.moveSpeed);
+    }
   }
 
   /**
@@ -288,10 +330,8 @@ export class ParticleApp {
       // アニメーションループ開始
       this.startAnimationLoop();
       
-      // ブレイクポイント対応ブラー強度を設定
-      if (currentSettings.blur !== undefined) {
-        this.setBlurStrength(currentSettings.blur);
-      }
+      // 設定を適用
+      this.applyCurrentSettings(currentSettings);
     } else if (this.options.type === "image") {
       // 画像処理を追加
       if (!this.options.imageSrc) {
@@ -315,12 +355,10 @@ export class ParticleApp {
             this.particleSystem!.setParticleScale(particleScale);
 
             this.startAnimationLoop();
-
-            // ブレイクポイント対応ブラー強度を設定
-            if (currentSettings.blur !== undefined) {
-              this.setBlurStrength(currentSettings.blur);
-            }
-
+            
+            // 設定を適用
+            this.applyCurrentSettings(currentSettings);
+            
             resolve();
           }
         );
@@ -352,6 +390,50 @@ export class ParticleApp {
       return;
     }
     this.filterManager.setBlurStrength(blur);
+  }
+
+  /**
+   * 闾値フィルターの闾値を変更
+   */
+  setThreshold(threshold: number): void {
+    if (!this.filterManager) {
+      console.warn("FilterManagerが初期化されていません");
+      return;
+    }
+    this.filterManager.setThreshold(threshold);
+  }
+
+  /**
+   * パーティクルの色を変更
+   */
+  setParticleTint(tint: number): void {
+    if (!this.particleSystem) {
+      console.warn("ParticleSystemが初期化されていません");
+      return;
+    }
+    this.particleSystem.setParticleTint(tint);
+  }
+
+  /**
+   * マウス影響範囲を変更
+   */
+  setMouseRadius(radius: number): void {
+    if (!this.particleSystem) {
+      console.warn("ParticleSystemが初期化されていません");
+      return;
+    }
+    this.particleSystem.setMouseRadius(radius);
+  }
+
+  /**
+   * 物理パラメータを変更
+   */
+  setPhysicsParams(friction?: number, moveSpeed?: number): void {
+    if (!this.particleSystem) {
+      console.warn("ParticleSystemが初期化されていません");
+      return;
+    }
+    this.particleSystem.setPhysicsParams(friction, moveSpeed);
   }
 
   /**
@@ -489,10 +571,8 @@ export class ParticleApp {
       this.particleSystem.createParticles(positions, this.app.stage);
       this.particleSystem.setParticleScale(particleScale);
       
-      // ブラー設定を適用
-      if (currentSettings.blur !== undefined) {
-        this.setBlurStrength(currentSettings.blur);
-      }
+      // 設定を適用
+      this.applyCurrentSettings(currentSettings);
     } else if (this.options.type === "image" && this.options.imageSrc) {
       const imageWidth = this.options.width || width;
       const imageHeight = this.options.height || height;
@@ -509,10 +589,8 @@ export class ParticleApp {
           this.particleSystem!.createParticles(positions, this.app!.stage);
           this.particleSystem!.setParticleScale(particleScale);
           
-          // ブラー設定を適用
-          if (currentSettings.blur !== undefined) {
-            this.setBlurStrength(currentSettings.blur);
-          }
+          // 設定を適用
+          this.applyCurrentSettings(currentSettings);
         }
       );
     }

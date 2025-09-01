@@ -8,6 +8,11 @@ export interface BreakpointSettings {
   scale?: number;
   blur?: number;
   size?: number; // フォントサイズ
+  mouseRadius?: number; // マウス影響範囲
+  friction?: number; // 摩擦係数
+  moveSpeed?: number; // 復元力
+  tint?: number; // パーティクルの色
+  threshold?: number; // 闾値フィルター
 }
 
 export interface ParticleAppOptions {
@@ -31,6 +36,11 @@ export interface ParticleAppOptions {
   density?: number; // パーティクル密度（値が小さいほど密度が高い）
   scale?: number; // パーティクルサイズ倍率
   blur?: number; // ブラー効果の強度
+  mouseRadius?: number; // マウス影響範囲半径
+  friction?: number; // 摩擦係数 (0-1)
+  moveSpeed?: number; // 元の位置に戻る力の強さ
+  tint?: number; // パーティクルの色 (hex)
+  threshold?: number; // 闾値フィルターの闾値 (0-1)
   // ブレイクポイント設定
   breakpoints?: {
     [width: number]: BreakpointSettings;

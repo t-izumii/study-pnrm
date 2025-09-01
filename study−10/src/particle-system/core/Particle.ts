@@ -40,4 +40,11 @@ export class Particle {
   draw() {
     this.physicsEngine.updatePhysics(this);
   }
+
+  /**
+   * 物理パラメータを動的に設定
+   */
+  setPhysicsParams(friction?: number, moveSpeed?: number): void {
+    this.physicsEngine.setParams(friction, moveSpeed);
+  }
 }

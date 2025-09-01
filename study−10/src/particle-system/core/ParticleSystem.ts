@@ -100,4 +100,32 @@ export class ParticleSystem {
     }
     console.log(`ParticleSystem: パーティクルスケールを${scale}に設定`);
   }
+
+  /**
+   * マウスの影響範囲を設定
+   */
+  setMouseRadius(radius: number): void {
+    this.mouse.radius = radius;
+    console.log(`ParticleSystem: マウス影響範囲を${radius}に設定`);
+  }
+
+  /**
+   * 全パーティクルの色を設定
+   */
+  setParticleTint(tint: number): void {
+    for (const particle of this.particles) {
+      particle.sprite.tint = tint;
+    }
+    console.log(`ParticleSystem: パーティクルの色を0x${tint.toString(16)}に設定`);
+  }
+
+  /**
+   * 全パーティクルの物理パラメータを設定
+   */
+  setPhysicsParams(friction?: number, moveSpeed?: number): void {
+    for (const particle of this.particles) {
+      particle.setPhysicsParams(friction, moveSpeed);
+    }
+    console.log(`ParticleSystem: 物理パラメータを設定 friction:${friction} moveSpeed:${moveSpeed}`);
+  }
 }
