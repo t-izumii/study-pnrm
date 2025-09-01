@@ -5,7 +5,7 @@ type EventListener = (...args: any[]) => void;
 
 /**
  * イベント管理を担当するクラス
- * 
+ *
  * 責任:
  * - DOM イベントリスナーの登録・削除
  * - リサイズイベントのデバウンス処理
@@ -54,7 +54,7 @@ export class EventManager {
    */
   removeEventListener(eventType: string): void {
     const listener = this.eventListeners.get(eventType);
-    
+
     if (!listener) {
       return;
     }

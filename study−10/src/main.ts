@@ -4,7 +4,7 @@ import { ParticleApp } from "./particle-system";
 async function main() {
   const app1 = new ParticleApp(".js-ParticleText", {
     type: "text",
-    text: "TEST",
+    text: "PNRM",
     weight: 500,
     density: 1,
     scale: 1,
@@ -28,12 +28,12 @@ async function main() {
 
   const app2 = new ParticleApp(".js-ParticleText2", {
     type: "text",
-    text: "TEST",
+    text: "PNRM",
     weight: 500,
     density: 4,
     scale: 2,
     blur: 0,
-    size: 120,
+    size: 110,
     mouseRadius: 50,
     font: {
       family: "Helvetica", // システムフォント
@@ -48,7 +48,7 @@ async function main() {
 
   const app3 = new ParticleApp(".js-ParticleText3", {
     type: "text",
-    text: "TEST",
+    text: "PNRM",
     weight: 500,
     density: 1,
     scale: 1,
