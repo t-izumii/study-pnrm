@@ -11,7 +11,8 @@ export interface BreakpointSettings {
   mouseRadius?: number; // マウス影響範囲
   friction?: number; // 摩擦係数
   moveSpeed?: number; // 復元力
-  tint?: number; // パーティクルの色
+  tint?: number; // パーティクルの色（非推奨）
+  color?: number; // パーティクルの色 (hex)
   threshold?: number; // 闾値フィルター
 }
 
@@ -39,7 +40,8 @@ export interface ParticleAppOptions {
   mouseRadius?: number; // マウス影響範囲半径
   friction?: number; // 摩擦係数 (0-1)
   moveSpeed?: number; // 元の位置に戻る力の強さ
-  tint?: number; // パーティクルの色 (hex)
+  tint?: number; // パーティクルの色 (hex) - 非推奨
+  color?: number; // パーティクルの色 (hex) - 推奨
   threshold?: number; // 闾値フィルターの闾値 (0-1)
   // ブレイクポイント設定
   breakpoints?: {

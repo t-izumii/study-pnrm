@@ -14,7 +14,7 @@ async function main() {
     mouseRadius: 20,
     friction: 0.9, // 摩擦係数（デフォルト: 0.86）
     moveSpeed: 0.1, // 復元力（デフォルト: 0.1）
-    tint: 0xff0000, // 赤色パーティクル（デフォルト: 0x000000）
+    color: 0xff0000, // 赤色パーティクル（デフォルト: 0x000000）
     font: {
       googleFont: {
         familyName: "Noto Sans JP",
@@ -40,16 +40,7 @@ async function main() {
     },
   });
 
-  const app3 = new ParticleApp(".js-ParticleImg", {
-    type: "image",
-    imageSrc: "/image.png",
-    width: 600,
-    density: 1,
-    scale: 1,
-    blur: 1,
-  });
-
-  const app4 = new ParticleApp(".js-ParticleText3", {
+  const app3 = new ParticleApp(".js-ParticleText3", {
     type: "text",
     text: "TEST",
     weight: 500,
@@ -67,6 +58,15 @@ async function main() {
     breakpoints: {
       680: { size: 100 },
     },
+  });
+
+  const app4 = new ParticleApp(".js-ParticleImg", {
+    type: "image",
+    imageSrc: "/image.png",
+    width: 600,
+    density: 1,
+    scale: 1,
+    blur: 1,
   });
 }
 

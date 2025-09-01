@@ -100,6 +100,21 @@ export class FilterManager {
   }
 
   /**
+   * 闾値フィルターの色を設定 (hex色からRGB成分を自動計算)
+   */
+  setColor(hexColor: number): void {
+    const r = ((hexColor >> 16) & 255) / 255;
+    const g = ((hexColor >> 8) & 255) / 255;
+    const b = (hexColor & 255) / 255;
+    
+    this.thresholdFilter.uniforms.mr = r;
+    this.thresholdFilter.uniforms.mg = g;
+    this.thresholdFilter.uniforms.mb = b;
+    
+    console.log(`FilterManager: 色を0x${hexColor.toString(16).padStart(6, '0')}に設定 (RGB: ${r.toFixed(2)}, ${g.toFixed(2)}, ${b.toFixed(2)})`);
+  }
+
+  /**
    * フィルターの設定をリセット
    */
   resetToDefaults(): void {

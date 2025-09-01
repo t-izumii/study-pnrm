@@ -141,7 +141,8 @@ export class ParticleApp {
       mouseRadius: this.options.mouseRadius ?? MOUSE_CONFIG.radius,
       friction: this.options.friction ?? PARTICLE_CONFIG.friction,
       moveSpeed: this.options.moveSpeed ?? PARTICLE_CONFIG.moveSpeed,
-      tint: this.options.tint ?? PARTICLE_CONFIG.tint,
+      // colorを優先し、なければtint、最後にデフォルト
+      color: this.options.color ?? this.options.tint ?? PARTICLE_CONFIG.tint,
       threshold: this.options.threshold ?? FILTER_CONFIG.threshold
     };
     
@@ -188,7 +189,8 @@ export class ParticleApp {
         mouseRadius: breakpointSettings.mouseRadius ?? baseSettings.mouseRadius,
         friction: breakpointSettings.friction ?? baseSettings.friction,
         moveSpeed: breakpointSettings.moveSpeed ?? baseSettings.moveSpeed,
-        tint: breakpointSettings.tint ?? baseSettings.tint,
+        // ブレイクポイントでもcolorを優先
+        color: breakpointSettings.color ?? breakpointSettings.tint ?? baseSettings.color,
         threshold: breakpointSettings.threshold ?? baseSettings.threshold
       };
       
@@ -198,6 +200,16 @@ export class ParticleApp {
 
     console.log('ブレイクポイントが適用されません、ベース設定を使用');
     return baseSettings;
+  }
+
+  /**
+   * hex色かRGB成分を抽出 (0-1の範囲)
+   */
+  private hexToRgb(hex: number): { r: number; g: number; b: number } {
+    const r = ((hex >> 16) & 255) / 255;
+    const g = ((hex >> 8) & 255) / 255;
+    const b = (hex & 255) / 255;
+    return { r, g, b };
   }
 
   /**
@@ -219,9 +231,9 @@ export class ParticleApp {
       this.setMouseRadius(settings.mouseRadius);
     }
 
-    // パーティクルの色を設定
-    if (settings.tint !== undefined) {
-      this.setParticleTint(settings.tint);
+    // パーティクルの色を設定（閾値フィルターの色として）
+    if (settings.color !== undefined) {
+      this.setColor(settings.color);
     }
 
     // 物理パラメータを設定
@@ -404,7 +416,18 @@ export class ParticleApp {
   }
 
   /**
-   * パーティクルの色を変更
+   * パーティクルの色を変更 (推奨)
+   */
+  setColor(color: number): void {
+    if (!this.filterManager) {
+      console.warn("FilterManagerが初期化されていません");
+      return;
+    }
+    this.filterManager.setColor(color);
+  }
+
+  /**
+   * パーティクルの色を変更 (非推奨 - 互換性のため)
    */
   setParticleTint(tint: number): void {
     if (!this.particleSystem) {
