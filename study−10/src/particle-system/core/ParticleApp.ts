@@ -120,15 +120,58 @@ export class ParticleApp {
     const width = rect.width || window.innerWidth;
     const height = rect.height || window.innerHeight;
 
-    this.app = new PIXI.Application({
-      width,
-      height,
+    // モバイル対応: WebGL未対応時のフォールバック設定
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const rendererConfig = {
       ...RENDERER_CONFIG,
       backgroundAlpha: 0,
-    });
+    };
+
+    // モバイルデバイスでは保守的な設定を使用
+    if (isMobile) {
+      Object.assign(rendererConfig, {
+        resolution: 1, // モバイルでは解像度を1に固定
+        antialias: false, // アンチエイリアシングを無効化してパフォーマンス向上
+      });
+    }
+
+    try {
+      this.app = new PIXI.Application({
+        width,
+        height,
+        ...rendererConfig,
+      });
+
+      // WebGLコンテキストの確認
+      const renderer = this.app.renderer;
+      console.log(`PIXI.js初期化完了 (${width}x${height})`);
+      console.log(`レンダラータイプ: ${renderer.type === PIXI.RENDERER_TYPE.WEBGL ? 'WebGL' : 'Canvas'}`);
+      
+      if (isMobile) {
+        console.log('モバイルデバイス用設定を適用');
+      }
+
+    } catch (error) {
+      console.error('PIXI.js初期化エラー:', error);
+      
+      // フォールバック: Canvas2Dレンダラーで再試行
+      try {
+        console.log('Canvas2Dレンダラーでフォールバック中...');
+        this.app = new PIXI.Application({
+          width,
+          height,
+          ...rendererConfig,
+          forceCanvas: true,
+        });
+        console.log('Canvas2Dレンダラーでの初期化完了');
+      } catch (fallbackError) {
+        console.error('Canvas2Dフォールバックも失敗:', fallbackError);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`PIXI.js初期化に失敗しました: ${errorMessage}`);
+      }
+    }
 
     this.containerElement.appendChild(this.app.view as HTMLCanvasElement);
-    console.log(`PIXI.js初期化完了 (${width}x${height})`);
   }
 
   /**
@@ -235,7 +278,7 @@ export class ParticleApp {
     const imageWidth = this.options.width || width;
     const imageHeight = this.options.height || height;
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       this.textureGenerator!.setImage(
         this.options.imageSrc!,
         settings.density,

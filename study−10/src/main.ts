@@ -8,9 +8,9 @@ async function main() {
     weight: 500,
     density: 1,
     scale: 1,
-    blur: 3,
+    blur: 1,
     threshold: 0.9,
-    size: 50,
+    size: 100,
     mouseRadius: 20,
     friction: 0.9, // 摩擦係数（デフォルト: 0.86）
     moveSpeed: 0.1, // 復元力（デフォルト: 0.1）
@@ -33,10 +33,16 @@ async function main() {
     density: 4,
     scale: 2,
     blur: 0,
-    size: 200,
-    mouseRadius: 100,
+    size: 120,
+    mouseRadius: 50,
     font: {
       family: "Helvetica", // システムフォント
+    },
+    breakpoints: {
+      680: {
+        size: 200,
+        mouseRadius: 100,
+      },
     },
   });
 
@@ -63,10 +69,13 @@ async function main() {
   const app4 = new ParticleApp(".js-ParticleImg", {
     type: "image",
     imageSrc: "/image.png",
-    width: 600,
+    width: 300,
     density: 1,
     scale: 1,
     blur: 1,
+    breakpoints: {
+      680: { width: 600 },
+    },
   });
 }
 

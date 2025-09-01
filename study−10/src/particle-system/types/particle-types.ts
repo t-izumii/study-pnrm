@@ -8,6 +8,7 @@ export interface BreakpointSettings {
   scale?: number;
   blur?: number;
   size?: number; // フォントサイズ
+  width?: number; // 画像幅
   mouseRadius?: number; // マウス影響範囲
   friction?: number; // 摩擦係数
   moveSpeed?: number; // 復元力

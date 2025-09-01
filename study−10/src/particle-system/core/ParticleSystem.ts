@@ -32,24 +32,46 @@ export class ParticleSystem {
       this.particles = [];
     }
 
-    this.container = new PIXI.ParticleContainer(50000);
+    // モバイル対応: パーティクル数を制限
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+    const maxParticles = 100000;
+    const limitedPositions = positions.slice(0, maxParticles);
 
-    for (const position of positions) {
+    if (positions.length > maxParticles) {
+      console.warn(
+        `パーティクル数を${positions.length}から${maxParticles}に制限 (モバイル対応)`
+      );
+    }
+
+    this.container = new PIXI.ParticleContainer(maxParticles);
+
+    for (const position of limitedPositions) {
       const particle = new Particle(position, this.texture);
       this.particles.push(particle);
       this.container!.addChild(particle.sprite);
     }
 
     stage.addChild(this.container);
+    console.log(`パーティクル${this.particles.length}個を生成完了`);
   }
 
   private setupEventListeners(canvas: HTMLCanvasElement): void {
-    canvas.addEventListener("pointermove", this.onMove.bind(this), false);
-    canvas.addEventListener("pointerleave", this.onLeave.bind(this), false);
-    canvas.addEventListener("pointerout", this.onLeave.bind(this), false);
+    // タッチデバイス対応: パッシブイベントリスナーを使用
+    const options = { passive: true };
     
-    // documentレベルでもマウスを追跡（確実なフォールバック）
-    document.addEventListener("pointermove", this.onDocumentMove.bind(this), false);
+    canvas.addEventListener("pointermove", this.onMove.bind(this), options);
+    canvas.addEventListener("pointerleave", this.onLeave.bind(this), options);
+    canvas.addEventListener("pointerout", this.onLeave.bind(this), options);
+
+    // documentレベルでもマウス/タッチを追跡（確実なフォールバック）
+    document.addEventListener(
+      "pointermove",
+      this.onDocumentMove.bind(this),
+      options
+    );
   }
 
   private onMove(e: PointerEvent) {
@@ -65,23 +87,23 @@ export class ParticleSystem {
     // マウスが抜けた方向を計算して、その方向に移動し続ける
     const canvas = e.currentTarget as HTMLCanvasElement;
     const rect = canvas.getBoundingClientRect();
-    
+
     // canvas外の座標を計算（実際のマウス位置）
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
+
     // マウス座標をそのまま更新（canvas外でも）
     this.mouse.x = mouseX;
     this.mouse.y = mouseY;
-    
+
     console.log(`マウスがcanvas外に移動: (${mouseX}, ${mouseY})`);
   }
 
   private onDocumentMove(e: PointerEvent): void {
     if (!this.canvas) return;
-    
+
     const rect = this.canvas.getBoundingClientRect();
-    
+
     // canvas内の相対座標に変換
     this.mouse.x = e.clientX - rect.left;
     this.mouse.y = e.clientY - rect.top;
@@ -116,7 +138,9 @@ export class ParticleSystem {
     for (const particle of this.particles) {
       particle.sprite.tint = tint;
     }
-    console.log(`ParticleSystem: パーティクルの色を0x${tint.toString(16)}に設定`);
+    console.log(
+      `ParticleSystem: パーティクルの色を0x${tint.toString(16)}に設定`
+    );
   }
 
   /**
@@ -126,6 +150,8 @@ export class ParticleSystem {
     for (const particle of this.particles) {
       particle.setPhysicsParams(friction, moveSpeed);
     }
-    console.log(`ParticleSystem: 物理パラメータを設定 friction:${friction} moveSpeed:${moveSpeed}`);
+    console.log(
+      `ParticleSystem: 物理パラメータを設定 friction:${friction} moveSpeed:${moveSpeed}`
+    );
   }
 }

@@ -39,6 +39,8 @@ export const FILTER_CONFIG = {
 export const RENDERER_CONFIG = {
   antialias: true, // アンチエイリアシング有効
   transparent: true, // 透明度有効
-  resolution: window.devicePixelRatio || 1, // デバイス解像度対応
+  resolution: Math.min(window.devicePixelRatio || 1, 2), // デバイス解像度対応（モバイル対応で上限2）
   autoDensity: true, // 自動密度調整
+  forceCanvas: false, // WebGL優先、フォールバックでCanvas2D
+  powerPreference: "high-performance", // GPU性能優先
 } as const;
