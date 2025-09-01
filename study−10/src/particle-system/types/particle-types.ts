@@ -11,6 +11,9 @@ export interface ParticleAppOptions {
   imageSrc?: string; // type="image"の場合
   width?: number; // 画像用width追加
   height?: number; // 画像用height追加
+  density?: number; // パーティクル密度（値が小さいほど密度が高い）
+  scale?: number; // パーティクルサイズ倍率
+  blur?: number; // ブラー効果の強度
 }
 
 /**

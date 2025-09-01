@@ -11,9 +11,9 @@ export const PARTICLE_GENERATION_CONFIG = {
 export const PARTICLE_CONFIG = {
   friction: 0.86, // 摩擦係数（0-1の範囲、値が小さいほど抵抗が大きい）
   moveSpeed: 0.1, // 元の位置に戻る力の強さ
-  scale: 0.3, // パーティクルの表示サイズ倍率
+  scale: 3, // パーティクルの表示サイズ倍率
   tint: 0x000000, // パーティクルの色（黒色）
-  radius: 10, // パーティクルの衝突判定半径
+  radius: 30, // パーティクルの衝突判定半径
 } as const;
 
 /**

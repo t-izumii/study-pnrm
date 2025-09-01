@@ -90,4 +90,14 @@ export class ParticleSystem {
   animate() {
     this.mouseInteraction.processAllParticles(this.mouse, this.particles);
   }
+
+  /**
+   * 全パーティクルのスケールを設定
+   */
+  setParticleScale(scale: number): void {
+    for (const particle of this.particles) {
+      particle.sprite.scale.set(scale);
+    }
+    console.log(`ParticleSystem: パーティクルスケールを${scale}に設定`);
+  }
 }

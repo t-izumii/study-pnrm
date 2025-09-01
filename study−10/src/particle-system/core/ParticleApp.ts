@@ -5,6 +5,7 @@ import { FilterManager } from "./FilterManager";
 import type { ParticleAppOptions } from "../types/particle-types";
 import {
   PARTICLE_GENERATION_CONFIG,
+  PARTICLE_CONFIG,
   RENDERER_CONFIG,
 } from "../config/particle-config";
 
@@ -140,6 +141,11 @@ export class ParticleApp {
     const imageWidth = this.options.width || width;
     const imageHeight = this.options.height || height;
 
+    // オプションから設定値を取得（デフォルト値として既存の設定を使用）
+    const density = this.options.density ?? PARTICLE_GENERATION_CONFIG.density;
+    const particleScale = (this.options.scale ?? PARTICLE_CONFIG.scale) * 0.1;
+    const blurStrength = this.options.blur;
+
     if (this.options.type === "text") {
       const fontSize = this.options.size || 100;
       const fontFamily = this.options.font || "Arial";
@@ -151,7 +157,7 @@ export class ParticleApp {
       const positions = this.textureGenerator.setTextWithFont(
         text,
         fontString,
-        PARTICLE_GENERATION_CONFIG.density,
+        density,
         width,
         height
       );
@@ -161,8 +167,16 @@ export class ParticleApp {
       // パーティクル作成
       this.particleSystem.createParticles(positions, this.app.stage);
 
+      // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
+      this.particleSystem.setParticleScale(particleScale);
+
       // アニメーションループ開始
       this.startAnimationLoop();
+
+      // オプションからブラー強度を設定
+      if (blurStrength !== undefined) {
+        this.setBlurStrength(blurStrength);
+      }
     } else if (this.options.type === "image") {
       // 画像処理を追加
       if (!this.options.imageSrc) {
@@ -172,7 +186,7 @@ export class ParticleApp {
       return new Promise((resolve, reject) => {
         this.textureGenerator!.setImage(
           this.options.imageSrc!,
-          PARTICLE_GENERATION_CONFIG.density,
+          density,
           imageWidth,
           imageHeight,
           (positions) => {
@@ -181,7 +195,17 @@ export class ParticleApp {
             );
 
             this.particleSystem!.createParticles(positions, this.app!.stage);
+
+            // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
+            this.particleSystem!.setParticleScale(particleScale);
+
             this.startAnimationLoop();
+
+            // オプションからブラー強度を設定
+            if (blurStrength !== undefined) {
+              this.setBlurStrength(blurStrength);
+            }
+
             resolve();
           }
         );

@@ -1,4 +1,5 @@
 import type { Position } from "../types/particle-types";
+
 export class TextureGenerator {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
