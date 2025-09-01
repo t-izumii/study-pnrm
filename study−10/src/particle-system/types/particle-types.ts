@@ -1,5 +1,5 @@
 /**
- * パーティクルシステムで使用する型定義
+ * パーティクルシステムで使用する型定義（リファクタリング版）
  */
 
 // ブレイクポイント用の設定型
@@ -13,22 +13,40 @@ export interface BreakpointSettings {
   moveSpeed?: number; // 復元力
   tint?: number; // パーティクルの色（非推奨）
   color?: number; // パーティクルの色 (hex)
-  threshold?: number; // 闾値フィルター
+  threshold?: number; // 閾値フィルター
 }
 
+/**
+ * Google Font設定
+ */
+export interface GoogleFontConfig {
+  familyName: string; // Google Fontのファミリー名（例: "Noto Sans JP"）
+  weights?: string[]; // ウェイトの配列（例: ['400', '700']）
+  subsets?: string[]; // 文字セット（例: ['latin', 'japanese']）
+}
+
+/**
+ * フォント設定の型
+ */
+export type FontConfig = string | {
+  // 通常のフォント指定（既存互換性）
+  family?: string;
+  // Google Font指定
+  googleFont?: GoogleFontConfig;
+};
+
+/**
+ * パーティクルの種類
+ */
+export type ParticleType = "text" | "image";
+
+/**
+ * パーティクルアプリケーションの設定オプション
+ */
 export interface ParticleAppOptions {
-  type: "text" | "image";
+  type: ParticleType;
   text?: string; // type="text"の場合
-  font?: string | {
-    // 通常のフォント指定（既存互換性）
-    family?: string;
-    // Google Font指定
-    googleFont?: {
-      familyName: string; // Google Fontのファミリー名（例: "Noto Sans JP"）
-      weights?: string[]; // ウェイトの配列（例: ['400', '700']）
-      subsets?: string[]; // 文字セット（例: ['latin', 'japanese']）
-    };
-  };
+  font?: FontConfig;
   weight?: number | string; // フォントウェイト
   size?: number; // フォントサイズ
   imageSrc?: string; // type="image"の場合
@@ -42,11 +60,9 @@ export interface ParticleAppOptions {
   moveSpeed?: number; // 元の位置に戻る力の強さ
   tint?: number; // パーティクルの色 (hex) - 非推奨
   color?: number; // パーティクルの色 (hex) - 推奨
-  threshold?: number; // 闾値フィルターの闾値 (0-1)
+  threshold?: number; // 閾値フィルターの閾値 (0-1)
   // ブレイクポイント設定
-  breakpoints?: {
-    [width: number]: BreakpointSettings;
-  };
+  breakpoints?: Record<number, BreakpointSettings>;
 }
 
 /**
@@ -75,7 +91,6 @@ export interface ParticleConfig {
   readonly moveSpeed: number; // 復元力の強さ
   readonly scale: number; // 表示サイズ倍率
   readonly tint: number; // 色（16進数）
-  readonly radius: number; // 衝突判定半径
 }
 
 /**
@@ -90,7 +105,7 @@ export interface ParticleGenerationConfig {
  */
 export interface ParticleOptions {
   position: Position;
-  texture?: any; // PIXI.Textureの型（PIXIの型をここで直接importしないため）
+  texture?: unknown; // PIXI.Textureの型（PIXIの型をここで直接importしないため）
 }
 
 /**
@@ -122,4 +137,47 @@ export type ParticleEventType =
 /**
  * パーティクルイベントリスナーの型
  */
-export type ParticleEventListener = (...args: any[]) => void;
+export type ParticleEventListener = (...args: unknown[]) => void;
+
+/**
+ * デバッグ情報の型
+ */
+export interface DebugInfo {
+  isInitialized: boolean;
+  containerSelector: string;
+  options: ParticleAppOptions;
+  currentSettings: unknown;
+  eventListenerCount: number;
+  appSize: {
+    width: number;
+    height: number;
+  } | null;
+}
+
+/**
+ * エラー情報の型
+ */
+export interface ParticleError {
+  code: string;
+  message: string;
+  details?: unknown;
+}
+
+/**
+ * 設定検証結果の型
+ */
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ParticleError[];
+  warnings: string[];
+}
+
+/**
+ * パフォーマンス情報の型
+ */
+export interface PerformanceInfo {
+  particleCount: number;
+  fps: number;
+  memoryUsage?: number;
+  renderTime?: number;
+}
