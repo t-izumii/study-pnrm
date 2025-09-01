@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 import { ParticleSystem } from "./ParticleSystem";
 import { TextureGenerator } from "./TextureGenerator";
 import { FilterManager } from "./FilterManager";
+import { FontLoader } from "../utils/FontLoader";
 import type { ParticleAppOptions } from "../types/particle-types";
 import {
   PARTICLE_GENERATION_CONFIG,
@@ -46,6 +47,9 @@ export class ParticleApp {
     try {
       console.log("ParticleApp: 初期化開始...");
 
+      // Google Fontの読み込み（指定されている場合）
+      await this.loadFontIfRequired();
+
       this.findContainerElement();
 
       // PIXI.jsアプリケーション初期化
@@ -72,6 +76,53 @@ export class ParticleApp {
 
   private findContainerElement(): void {
     this.containerElement = document.querySelector(this.containerSelector);
+  }
+
+  /**
+   * オプションでGoogle Fontが指定されている場合のみ読み込み
+   */
+  private async loadFontIfRequired(): Promise<void> {
+    const fontConfig = this.extractFontConfig();
+    if (fontConfig.googleFont) {
+      console.log(`Google Font読み込み中: ${fontConfig.googleFont.familyName}`);
+      await FontLoader.loadFont(fontConfig.googleFont);
+    }
+  }
+
+  /**
+   * オプションからフォント設定を抽出して正規化
+   */
+  private extractFontConfig() {
+    const { font } = this.options;
+    
+    // 文字列で指定された場合（既存互換性）
+    if (typeof font === 'string') {
+      return {
+        familyName: font,
+        googleFont: null
+      };
+    }
+    
+    // オブジェクトで指定された場合
+    if (font && typeof font === 'object') {
+      if (font.googleFont) {
+        return {
+          familyName: font.googleFont.familyName,
+          googleFont: font.googleFont
+        };
+      } else if (font.family) {
+        return {
+          familyName: font.family,
+          googleFont: null
+        };
+      }
+    }
+    
+    // デフォルトフォント
+    return {
+      familyName: 'Arial',
+      googleFont: null
+    };
   }
 
   /**
@@ -148,11 +199,12 @@ export class ParticleApp {
 
     if (this.options.type === "text") {
       const fontSize = this.options.size || 100;
-      const fontFamily = this.options.font || "Arial";
+      const fontConfig = this.extractFontConfig();
+      const fontFamily = fontConfig.familyName;
       const fontWeight = this.options.weight || "normal";
       const text = this.options.text || "TEST";
 
-      const fontString = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      const fontString = `${fontWeight} ${fontSize}px "${fontFamily}"`;
 
       const positions = this.textureGenerator.setTextWithFont(
         text,
@@ -356,5 +408,104 @@ export class ParticleApp {
       this.app.destroy(true);
     }
     console.log("ParticleApp: アプリケーション終了");
+  }
+
+  private async generateParticlesFromOptions(): Promise<void> {
+    if (!this.app || !this.particleSystem || !this.textureGenerator) {
+      throw new Error("必要なコンポーネントが初期化されていません");
+    }
+
+    const width = this.app.renderer.width;
+    const height = this.app.renderer.height;
+
+    const imageWidth = this.options.width || width;
+    const imageHeight = this.options.height || height;
+
+    // オプションから設定値を取得（デフォルト値として既存の設定を使用）
+    const density = this.options.density ?? PARTICLE_GENERATION_CONFIG.density;
+    const particleScale = (this.options.scale ?? PARTICLE_CONFIG.scale * 10) * 0.1;
+    const blurStrength = this.options.blur;
+
+    if (this.options.type === "text") {
+      const fontSize = this.options.size || 100;
+      const fontConfig = this.extractFontConfig();
+      const fontFamily = fontConfig.familyName;
+      const fontWeight = this.options.weight || "normal";
+      const text = this.options.text || "TEST";
+
+      const fontString = `${fontWeight} ${fontSize}px "${fontFamily}"`;
+
+      const positions = this.textureGenerator.setTextWithFont(
+        text,
+        fontString,
+        density,
+        width,
+        height
+      );
+
+      console.log(`ParticleApp: ${positions.length}個のパーティクル座標を生成`);
+
+      // パーティクル作成
+      this.particleSystem.createParticles(positions, this.app.stage);
+      
+      // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
+      this.particleSystem.setParticleScale(particleScale);
+
+      // アニメーションループ開始
+      this.startAnimationLoop();
+      
+      // オプションからブラー強度を設定
+      if (blurStrength !== undefined) {
+        this.setBlurStrength(blurStrength);
+      }
+    } else if (this.options.type === "image") {
+      // 画像処理を追加
+      if (!this.options.imageSrc) {
+        throw new Error("画像パスが指定されていません");
+      }
+
+      return new Promise((resolve, reject) => {
+        this.textureGenerator!.setImage(
+          this.options.imageSrc!,
+          density,
+          imageWidth,
+          imageHeight,
+          (positions) => {
+            console.log(
+              `ParticleApp: 画像から${positions.length}個のパーティクル座標を生成`
+            );
+
+            this.particleSystem!.createParticles(positions, this.app!.stage);
+            
+            // スケールを設定（オプション指定がない場合はconfigのデフォルト値を使用）
+            this.particleSystem!.setParticleScale(particleScale);
+            
+            this.startAnimationLoop();
+            
+            // オプションからブラー強度を設定
+            if (blurStrength !== undefined) {
+              this.setBlurStrength(blurStrength);
+            }
+            
+            resolve();
+          }
+        );
+      });
+    }
+  }
+
+  /**
+   * アニメーションループの開始
+   */
+  private startAnimationLoop(): void {
+    if (!this.app || !this.particleSystem) {
+      throw new Error(
+        "アプリケーションまたはパーティクルシステムが初期化されていません"
+      );
+    }
+
+    this.app.ticker.add(() => {
+      this.particleSystem!.animate();
+    });
   }
 }

@@ -31,7 +31,6 @@ export class TextureGenerator {
   ): Position[] {
     this.clearCanvas(stageWidth, stageHeight);
 
-    // CSSから取得したフォント設定を適用
     this.ctx.font = fontString;
     this.ctx.fillStyle = `rgba(0,0,0,1.0)`;
     this.ctx.textBaseline = "middle";

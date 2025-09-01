@@ -5,7 +5,16 @@
 export interface ParticleAppOptions {
   type: "text" | "image";
   text?: string; // type="text"の場合
-  font?: string; // フォント名
+  font?: string | {
+    // 通常のフォント指定（既存互換性）
+    family?: string;
+    // Google Font指定
+    googleFont?: {
+      familyName: string; // Google Fontのファミリー名（例: "Noto Sans JP"）
+      weights?: string[]; // ウェイトの配列（例: ['400', '700']）
+      subsets?: string[]; // 文字セット（例: ['latin', 'japanese']）
+    };
+  };
   weight?: number | string; // フォントウェイト
   size?: number; // フォントサイズ
   imageSrc?: string; // type="image"の場合

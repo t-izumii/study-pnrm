@@ -4,8 +4,9 @@ export { MouseInteraction } from "./physics/MouseInteraction";
 export { TextureGenerator } from "./core/TextureGenerator";
 export { FilterManager } from "./core/FilterManager";
 export { ParticleApp } from "./core/ParticleApp";
+export { FontLoader } from "./utils/FontLoader";
 
-export type { Position, MouseState, Force } from "./types/particle-types";
+export type { Position, MouseState, Force, ParticleAppOptions } from "./types/particle-types";
 
 export {
   PARTICLE_CONFIG,
