@@ -344,52 +344,102 @@ export class ParticleApp {
       clearTimeout(this.resizeDebounceId);
     }
 
-    this.resizeDebounceId = window.setTimeout(() => {
-      this.resize();
+    this.resizeDebounceId = window.setTimeout(async () => {
+      await this.resize();
     }, 100);
   }
 
   /**
    * リサイズ処理とパーティクル再生成
    */
-  resize(width?: number, height?: number): void {
+  async resize(width?: number, height?: number): Promise<void> {
     if (!this.app) {
       console.warn("PIXI.jsアプリケーションが初期化されていません");
       return;
     }
 
-    const newWidth = width || window.innerWidth;
-    const newHeight = height || window.innerHeight;
+    let newWidth: number;
+    let newHeight: number;
+
+    if (width !== undefined && height !== undefined) {
+      // 明示的にサイズが指定された場合
+      newWidth = width;
+      newHeight = height;
+    } else {
+      // コンテナ要素のサイズを取得
+      if (this.containerElement) {
+        const rect = this.containerElement.getBoundingClientRect();
+        newWidth = rect.width || window.innerWidth;
+        newHeight = rect.height || window.innerHeight;
+      } else {
+        // フォールバック: window サイズを使用
+        newWidth = window.innerWidth;
+        newHeight = window.innerHeight;
+      }
+    }
 
     // PIXIアプリケーションリサイズ
     this.app.renderer.resize(newWidth, newHeight);
 
     // パーティクルを新しいサイズで再生成
-    this.regenerateParticles();
+    await this.regenerateParticles();
 
     console.log(`ParticleApp: リサイズ完了 ${newWidth}x${newHeight}`);
   }
 
   /**
-   * パーティクルを現在のウィンドウサイズで再生成
+   * パーティクルを現在のオプションで再生成
    */
-  private regenerateParticles(): void {
+  private async regenerateParticles(): Promise<void> {
     if (!this.textureGenerator || !this.particleSystem || !this.app) {
       return;
     }
 
-    this.textureGenerator.generateFromHTMLSelector(
-      this.currentSelector,
-      PARTICLE_GENERATION_CONFIG.density,
-      window.innerWidth,
-      window.innerHeight,
-      (positions) => {
-        console.log(
-          `ParticleApp: リサイズ時に${positions.length}個のパーティクルを再生成`
-        );
-        this.particleSystem!.createParticles(positions, this.app!.stage);
-      }
-    );
+    const width = this.app.renderer.width;
+    const height = this.app.renderer.height;
+    const density = this.options.density ?? PARTICLE_GENERATION_CONFIG.density;
+    const particleScale = (this.options.scale ?? PARTICLE_CONFIG.scale * 10) * 0.1;
+
+    if (this.options.type === "text") {
+      const fontSize = this.options.size || 100;
+      const fontConfig = this.extractFontConfig();
+      const fontFamily = fontConfig.familyName;
+      const fontWeight = this.options.weight || "normal";
+      const text = this.options.text || "TEST";
+
+      const fontString = `${fontWeight} ${fontSize}px "${fontFamily}"`;
+
+      const positions = this.textureGenerator.setTextWithFont(
+        text,
+        fontString,
+        density,
+        width,
+        height
+      );
+
+      console.log(
+        `ParticleApp: リサイズ時に${positions.length}個のパーティクルを再生成`
+      );
+      this.particleSystem.createParticles(positions, this.app.stage);
+      this.particleSystem.setParticleScale(particleScale);
+    } else if (this.options.type === "image" && this.options.imageSrc) {
+      const imageWidth = this.options.width || width;
+      const imageHeight = this.options.height || height;
+
+      this.textureGenerator.setImage(
+        this.options.imageSrc,
+        density,
+        imageWidth,
+        imageHeight,
+        (positions) => {
+          console.log(
+            `ParticleApp: リサイズ時に画像から${positions.length}個のパーティクルを再生成`
+          );
+          this.particleSystem!.createParticles(positions, this.app!.stage);
+          this.particleSystem!.setParticleScale(particleScale);
+        }
+      );
+    }
   }
 
   /**
