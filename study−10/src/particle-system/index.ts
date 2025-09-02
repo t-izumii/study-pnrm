@@ -1,28 +1,5 @@
-// ==========================================
-// メインエクスポート（推奨）
-// ==========================================
-
-// ファサードパターン - 型安全なファクトリー
-export { ParticleFactory } from "./core/ParticleFactory";
-
-// 従来のメインクラス（後方互換性）
+// メインエクスポート
 export { ParticleApp } from "./core/ParticleApp";
-
-
-
-// ==========================================
-// 名前空間エクスポート（新しい推奨方法）
-// ==========================================
-
-export * as Core from "./namespaces/core";
-export * as Physics from "./namespaces/physics";
-export * as Utils from "./namespaces/utils";
-export * as Types from "./namespaces/types";
-export * as Config from "./namespaces/config";
-
-// ==========================================
-// 直接エクスポート（後方互換性）
-// ==========================================
 
 // コアシステム
 export { Particle } from "./core/Particle";
@@ -58,8 +35,6 @@ export type {
   Position,
   MouseState,
   Force,
-  TextParticleOptions,
-  ImageParticleOptions,
   ParticleAppOptions,
   BreakpointSettings,
   GoogleFontConfig,
@@ -88,24 +63,6 @@ export {
 
 /**
  * 使用例:
- * 
- * // 新しい推奨方法（型安全）
- * import { ParticleFactory } from './particle-system';
- * 
- * const app1 = ParticleFactory.createTextParticle('.text1', {
- *   text: 'Hello World',
- *   size: 100,
- *   color: 0xff0000
- * });
- * 
- * const app2 = ParticleFactory.createImageParticle('.image1', {
- *   imageSrc: '/image.png',
- *   width: 400
- * });
- * 
- * // 名前空間を使用した場合
- * import { Core, Utils, Types } from './particle-system';
- * const app = new Core.ParticleApp('.container', options);
  * 
  * // 従来の方法（後方互換性）
  * import { ParticleApp } from './particle-system';

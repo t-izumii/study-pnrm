@@ -2,7 +2,7 @@ import "./style.css";
 import { ParticleApp } from "./particle-system";
 
 async function main() {
-  const app1 = new ParticleApp(".js-ParticleText", {
+  new ParticleApp(".js-ParticleText", {
     type: "text",
     text: "PNRM",
     weight: 500,
@@ -26,7 +26,7 @@ async function main() {
     },
   });
 
-  const app2 = new ParticleApp(".js-ParticleText2", {
+  new ParticleApp(".js-ParticleText2", {
     type: "text",
     text: "PNRM",
     weight: 500,
@@ -46,7 +46,7 @@ async function main() {
     },
   });
 
-  const app3 = new ParticleApp(".js-ParticleText3", {
+  new ParticleApp(".js-ParticleText3", {
     type: "text",
     text: "PNRM",
     weight: 500,
@@ -66,7 +66,7 @@ async function main() {
     },
   });
 
-  const app4 = new ParticleApp(".js-ParticleImg", {
+  new ParticleApp(".js-ParticleImg", {
     type: "image",
     imageSrc: "/image.png",
     width: 300,
