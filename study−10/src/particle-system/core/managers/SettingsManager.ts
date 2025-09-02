@@ -15,6 +15,7 @@ export interface ResolvedSettings {
   scale: number;
   blur?: number;
   size: number;
+  width?: number;
   mouseRadius: number;
   friction: number;
   moveSpeed: number;
@@ -81,6 +82,7 @@ export class SettingsManager {
       scale: this.options.scale ?? PARTICLE_CONFIG.scale * 10,
       blur: this.options.blur,
       size: this.options.size ?? 100,
+      width: this.options.width,
       mouseRadius: this.options.mouseRadius ?? MOUSE_CONFIG.radius,
       friction: this.options.friction ?? PARTICLE_CONFIG.friction,
       moveSpeed: this.options.moveSpeed ?? PARTICLE_CONFIG.moveSpeed,
@@ -128,6 +130,7 @@ export class SettingsManager {
       scale: breakpoint.scale ?? base.scale,
       blur: breakpoint.blur ?? base.blur,
       size: breakpoint.size ?? base.size,
+      width: breakpoint.width ?? base.width,
       mouseRadius: breakpoint.mouseRadius ?? base.mouseRadius,
       friction: breakpoint.friction ?? base.friction,
       moveSpeed: breakpoint.moveSpeed ?? base.moveSpeed,

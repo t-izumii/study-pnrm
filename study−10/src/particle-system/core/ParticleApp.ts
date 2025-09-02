@@ -275,7 +275,7 @@ export class ParticleApp {
       throw new Error("画像パスが指定されていません");
     }
 
-    const imageWidth = this.options.width || width;
+    const imageWidth = settings.width || this.options.width || width;
     const imageHeight = this.options.height || height;
 
     return new Promise<void>((resolve) => {
@@ -394,7 +394,7 @@ export class ParticleApp {
       return;
     }
 
-    const imageWidth = this.options.width || width;
+    const imageWidth = settings.width || this.options.width || width;
     const imageHeight = this.options.height || height;
 
     return new Promise((resolve) => {
