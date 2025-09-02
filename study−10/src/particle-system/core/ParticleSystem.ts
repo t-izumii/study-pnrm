@@ -17,8 +17,8 @@ export class ParticleSystem {
     this.texture = texture;
     this.canvas = canvas; // canvas参照を保存
     this.mouse = {
-      x: 0,
-      y: 0,
+      x: -1000,
+      y: -1000,
       radius: MOUSE_CONFIG.radius,
     };
     if (canvas) {
@@ -61,42 +61,13 @@ export class ParticleSystem {
   private setupEventListeners(canvas: HTMLCanvasElement): void {
     // タッチデバイス対応: パッシブイベントリスナーを使用
     const options = { passive: true };
-    
-    canvas.addEventListener("pointermove", this.onMove.bind(this), options);
-    canvas.addEventListener("pointerleave", this.onLeave.bind(this), options);
-    canvas.addEventListener("pointerout", this.onLeave.bind(this), options);
 
-    // documentレベルでもマウス/タッチを追跡（確実なフォールバック）
+    // documentレベルでマウス/タッチを追跡
     document.addEventListener(
       "pointermove",
       this.onDocumentMove.bind(this),
       options
     );
-  }
-
-  private onMove(e: PointerEvent) {
-    const canvas = e.currentTarget as HTMLCanvasElement;
-    const rect = canvas.getBoundingClientRect();
-
-    // canvas内の相対座標に変換
-    this.mouse.x = e.clientX - rect.left;
-    this.mouse.y = e.clientY - rect.top;
-  }
-
-  private onLeave(e: PointerEvent): void {
-    // マウスが抜けた方向を計算して、その方向に移動し続ける
-    const canvas = e.currentTarget as HTMLCanvasElement;
-    const rect = canvas.getBoundingClientRect();
-
-    // canvas外の座標を計算（実際のマウス位置）
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    // マウス座標をそのまま更新（canvas外でも）
-    this.mouse.x = mouseX;
-    this.mouse.y = mouseY;
-
-    console.log(`マウスがcanvas外に移動: (${mouseX}, ${mouseY})`);
   }
 
   private onDocumentMove(e: PointerEvent): void {
