@@ -37,22 +37,9 @@ export type FontConfig = string | {
 };
 
 /**
- * パーティクルの種類
+ * 共通のパーティクル設定
  */
-export type ParticleType = "text" | "image";
-
-/**
- * パーティクルアプリケーションの設定オプション
- */
-export interface ParticleAppOptions {
-  type: ParticleType;
-  text?: string; // type="text"の場合
-  font?: FontConfig;
-  weight?: number | string; // フォントウェイト
-  size?: number; // フォントサイズ
-  imageSrc?: string; // type="image"の場合
-  width?: number; // 画像用width追加
-  height?: number; // 画像用height追加
+interface BaseParticleOptions {
   density?: number; // パーティクル密度（値が小さいほど密度が高い）
   scale?: number; // パーティクルサイズ倍率
   blur?: number; // ブラー効果の強度
@@ -65,6 +52,38 @@ export interface ParticleAppOptions {
   // ブレイクポイント設定
   breakpoints?: Record<number, BreakpointSettings>;
 }
+
+/**
+ * テキストパーティクルの設定オプション
+ */
+export interface TextParticleOptions extends BaseParticleOptions {
+  type: "text";
+  text: string; // 必須
+  font?: FontConfig;
+  weight?: number | string; // フォントウェイト
+  size?: number; // フォントサイズ
+}
+
+/**
+ * 画像パーティクルの設定オプション
+ */
+export interface ImageParticleOptions extends BaseParticleOptions {
+  type: "image";
+  imageSrc: string; // 必須
+  width?: number;
+  height?: number;
+}
+
+/**
+ * パーティクルアプリケーションの設定オプション（判別可能な共用体型）
+ */
+export type ParticleAppOptions = TextParticleOptions | ImageParticleOptions;
+
+/**
+ * パーティクルの種類（後方互換性のため残す）
+ * @deprecated 型安全性のためParticleAppOptionsの判別プロパティを使用してください
+ */
+export type ParticleType = "text" | "image";
 
 /**
  * 2D座標を表現するインターフェース
