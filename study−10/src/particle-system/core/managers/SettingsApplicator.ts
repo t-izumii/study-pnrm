@@ -4,7 +4,7 @@ import type { FilterManager } from "../FilterManager";
 
 /**
  * 設定値をシステムに適用する処理を担当するクラス
- * 
+ *
  * 責任:
  * - 設定値の変更をParticleSystemとFilterManagerに伝達
  * - 設定適用の順序制御
@@ -69,7 +69,10 @@ export class SettingsApplicator {
       this.particleSystem.setMouseRadius(settings.mouseRadius);
 
       // 物理パラメータを設定
-      this.particleSystem.setPhysicsParams(settings.friction, settings.moveSpeed);
+      this.particleSystem.setPhysicsParams(
+        settings.friction,
+        settings.moveSpeed
+      );
     } catch (error) {
       console.error("パーティクル設定の適用に失敗:", error);
     }
@@ -81,22 +84,24 @@ export class SettingsApplicator {
   applySingleSetting(key: keyof ResolvedSettings, value: any): void {
     try {
       switch (key) {
-        case 'blur':
+        case "blur":
           this.filterManager?.setBlurStrength(value);
           break;
-        case 'threshold':
+        case "threshold":
           this.filterManager?.setThreshold(value);
           break;
-        case 'color':
+        case "color":
           this.filterManager?.setColor(value);
           break;
-        case 'mouseRadius':
+        case "mouseRadius":
           this.particleSystem?.setMouseRadius(value);
           break;
-        case 'friction':
-        case 'moveSpeed':
+        case "friction":
+        case "moveSpeed":
           // 物理パラメータは同時に設定する必要がある場合がある
-          console.warn(`${key}の個別設定は推奨されません。applySettingsを使用してください`);
+          console.warn(
+            `${key}の個別設定は推奨されません。applySettingsを使用してください`
+          );
           break;
         default:
           console.warn(`未知の設定キー: ${key}`);
@@ -110,6 +115,13 @@ export class SettingsApplicator {
    * 設定可能なキーの一覧を取得
    */
   getAvailableSettings(): Array<keyof ResolvedSettings> {
-    return ['blur', 'threshold', 'color', 'mouseRadius', 'friction', 'moveSpeed'];
+    return [
+      "blur",
+      "threshold",
+      "color",
+      "mouseRadius",
+      "friction",
+      "moveSpeed",
+    ];
   }
 }

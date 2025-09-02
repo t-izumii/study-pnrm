@@ -1,4 +1,7 @@
-import type { ParticleAppOptions, BreakpointSettings } from "../../types/particle-types";
+import type {
+  ParticleAppOptions,
+  BreakpointSettings,
+} from "../../types/particle-types";
 import {
   PARTICLE_GENERATION_CONFIG,
   PARTICLE_CONFIG,
@@ -25,7 +28,7 @@ export interface ResolvedSettings {
 
 /**
  * パーティクルシステムの設定管理を担当するクラス
- * 
+ *
  * 責任:
  * - ベース設定とブレイクポイント設定のマージ
  * - 画面サイズに応じた適切な設定値の決定
@@ -37,19 +40,19 @@ export class SettingsManager {
   constructor(options: ParticleAppOptions) {
     // 設定値を検証
     const validationResult = SettingsValidator.validateOptions(options);
-    
+
     // 警告を表示
     if (validationResult.warnings.length > 0) {
-      validationResult.warnings.forEach(warning => {
+      validationResult.warnings.forEach((warning) => {
         console.warn(`SettingsManager: ${warning}`);
       });
     }
-    
+
     // エラーがある場合は例外を投げる
     if (!validationResult.isValid) {
       SettingsValidator.throwIfInvalid(validationResult);
     }
-    
+
     this.options = options;
   }
 
@@ -58,13 +61,13 @@ export class SettingsManager {
    */
   getCurrentSettings(currentWidth: number): ResolvedSettings {
     const baseSettings = this.getBaseSettings();
-    
+
     if (!this.options.breakpoints) {
       return baseSettings;
     }
 
     const activeBreakpoint = this.findActiveBreakpoint(currentWidth);
-    
+
     if (activeBreakpoint === null) {
       return baseSettings;
     }
@@ -122,7 +125,7 @@ export class SettingsManager {
    * ベース設定とブレイクポイント設定をマージ
    */
   private mergeSettings(
-    base: ResolvedSettings, 
+    base: ResolvedSettings,
     breakpoint: BreakpointSettings
   ): ResolvedSettings {
     return {
@@ -145,8 +148,10 @@ export class SettingsManager {
    */
   validateSettings(settings: ResolvedSettings): boolean {
     return (
-      settings.friction >= 0 && settings.friction <= 1 &&
-      settings.threshold >= 0 && settings.threshold <= 1 &&
+      settings.friction >= 0 &&
+      settings.friction <= 1 &&
+      settings.threshold >= 0 &&
+      settings.threshold <= 1 &&
       settings.density > 0 &&
       settings.scale > 0 &&
       settings.size > 0 &&
@@ -158,10 +163,10 @@ export class SettingsManager {
    * デバッグ情報を出力
    */
   debugSettings(settings: ResolvedSettings, currentWidth: number): void {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.log(`SettingsManager: 画面幅 ${currentWidth}px`);
-      console.log('適用設定:', settings);
-      
+      console.log("適用設定:", settings);
+
       const activeBreakpoint = this.findActiveBreakpoint(currentWidth);
       if (activeBreakpoint !== null) {
         console.log(`アクティブブレイクポイント: ${activeBreakpoint}px`);

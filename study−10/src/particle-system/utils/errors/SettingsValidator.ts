@@ -1,11 +1,14 @@
-import type { ParticleAppOptions, ValidationResult, ParticleError } from "../../types/particle-types";
+import type {
+  ParticleAppOptions,
+  ValidationResult,
+  ParticleError,
+} from "../../types/particle-types";
 import { ValidationError } from "./ParticleSystemError";
 
 /**
  * 設定値のバリデーションを行うクラス
  */
 export class SettingsValidator {
-  
   /**
    * パーティクルアプリケーションの設定を検証
    */
@@ -38,7 +41,10 @@ export class SettingsValidator {
   /**
    * 必須フィールドの検証
    */
-  private static validateRequiredFields(options: ParticleAppOptions, errors: ParticleError[]): void {
+  private static validateRequiredFields(
+    options: ParticleAppOptions,
+    errors: ParticleError[]
+  ): void {
     if (!options.type) {
       errors.push({
         code: "MISSING_REQUIRED_FIELD",
@@ -64,7 +70,10 @@ export class SettingsValidator {
   /**
    * 数値範囲の検証
    */
-  private static validateNumericRanges(options: ParticleAppOptions, errors: ParticleError[]): void {
+  private static validateNumericRanges(
+    options: ParticleAppOptions,
+    errors: ParticleError[]
+  ): void {
     // friction: 0-1の範囲
     if (options.friction !== undefined) {
       if (options.friction < 0 || options.friction > 1) {
@@ -88,10 +97,16 @@ export class SettingsValidator {
     }
 
     // 正の数値の検証
-    const positiveFields = ['size', 'scale', 'density', 'mouseRadius', 'moveSpeed'];
-    positiveFields.forEach(field => {
+    const positiveFields = [
+      "size",
+      "scale",
+      "density",
+      "mouseRadius",
+      "moveSpeed",
+    ];
+    positiveFields.forEach((field) => {
       const value = (options as Record<string, unknown>)[field];
-      if (value !== undefined && (typeof value !== 'number' || value <= 0)) {
+      if (value !== undefined && (typeof value !== "number" || value <= 0)) {
         errors.push({
           code: "INVALID_VALUE",
           message: `${field}は正の数値で指定してください`,
@@ -105,8 +120,8 @@ export class SettingsValidator {
    * タイプ固有の検証
    */
   private static validateTypeSpecific(
-    options: ParticleAppOptions, 
-    errors: ParticleError[], 
+    options: ParticleAppOptions,
+    errors: ParticleError[],
     warnings: string[]
   ): void {
     if (options.type === "image") {
@@ -128,8 +143,8 @@ export class SettingsValidator {
    * ブレイクポイントの検証
    */
   private static validateBreakpoints(
-    options: ParticleAppOptions, 
-    errors: ParticleError[], 
+    options: ParticleAppOptions,
+    errors: ParticleError[],
     warnings: string[]
   ): void {
     if (!options.breakpoints) {
@@ -137,9 +152,9 @@ export class SettingsValidator {
     }
 
     const breakpointKeys = Object.keys(options.breakpoints).map(Number);
-    
+
     // ブレイクポイントが正の整数かチェック
-    breakpointKeys.forEach(key => {
+    breakpointKeys.forEach((key) => {
       if (key <= 0 || !Number.isInteger(key)) {
         errors.push({
           code: "INVALID_BREAKPOINT",
@@ -151,19 +166,33 @@ export class SettingsValidator {
 
     // ブレイクポイント内の設定値を検証
     Object.entries(options.breakpoints).forEach(([key, settings]) => {
-      if (settings.friction !== undefined && (settings.friction < 0 || settings.friction > 1)) {
+      if (
+        settings.friction !== undefined &&
+        (settings.friction < 0 || settings.friction > 1)
+      ) {
         errors.push({
           code: "INVALID_BREAKPOINT_VALUE",
           message: `ブレイクポイント ${key} のfrictionは0-1の範囲で指定してください`,
-          details: { breakpoint: key, field: "friction", value: settings.friction },
+          details: {
+            breakpoint: key,
+            field: "friction",
+            value: settings.friction,
+          },
         });
       }
 
-      if (settings.threshold !== undefined && (settings.threshold < 0 || settings.threshold > 1)) {
+      if (
+        settings.threshold !== undefined &&
+        (settings.threshold < 0 || settings.threshold > 1)
+      ) {
         errors.push({
           code: "INVALID_BREAKPOINT_VALUE",
           message: `ブレイクポイント ${key} のthresholdは0-1の範囲で指定してください`,
-          details: { breakpoint: key, field: "threshold", value: settings.threshold },
+          details: {
+            breakpoint: key,
+            field: "threshold",
+            value: settings.threshold,
+          },
         });
       }
     });
@@ -172,7 +201,10 @@ export class SettingsValidator {
   /**
    * 非推奨オプションの警告
    */
-  private static checkDeprecatedOptions(options: ParticleAppOptions, warnings: string[]): void {
+  private static checkDeprecatedOptions(
+    options: ParticleAppOptions,
+    warnings: string[]
+  ): void {
     if (options.tint !== undefined) {
       warnings.push("tintオプションは非推奨です。colorを使用してください");
     }
@@ -183,11 +215,13 @@ export class SettingsValidator {
    */
   static throwIfInvalid(result: ValidationResult): void {
     if (!result.isValid) {
-      const errorMessages = result.errors.map(error => error.message).join(", ");
-      throw new ValidationError(
-        `設定検証に失敗しました: ${errorMessages}`,
-        { errors: result.errors, warnings: result.warnings }
-      );
+      const errorMessages = result.errors
+        .map((error) => error.message)
+        .join(", ");
+      throw new ValidationError(`設定検証に失敗しました: ${errorMessages}`, {
+        errors: result.errors,
+        warnings: result.warnings,
+      });
     }
   }
 
@@ -195,7 +229,7 @@ export class SettingsValidator {
    * 色値（16進数）の検証
    */
   static validateColor(color: number): boolean {
-    return Number.isInteger(color) && color >= 0 && color <= 0xFFFFFF;
+    return Number.isInteger(color) && color >= 0 && color <= 0xffffff;
   }
 
   /**

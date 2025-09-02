@@ -9,7 +9,7 @@ import {
   SettingsApplicator,
   FontManager,
   EventManager,
-  type ResolvedSettings
+  type ResolvedSettings,
 } from "./managers";
 
 /**
@@ -53,7 +53,7 @@ export class ParticleApp {
     this.eventManager = new EventManager();
 
     // 初期化を非同期で実行
-    this.initialize().catch(error => {
+    this.initialize().catch((error) => {
       console.error("ParticleApp初期化中にエラーが発生しました:", error);
     });
   }
@@ -88,7 +88,6 @@ export class ParticleApp {
 
       this.isInitialized = true;
       console.log("ParticleApp: 初期化完了！");
-
     } catch (error) {
       console.error("ParticleApp初期化失敗:", error);
       throw error;
@@ -100,7 +99,7 @@ export class ParticleApp {
    */
   private findContainerElement(): void {
     const element = document.querySelector(this.containerSelector);
-    
+
     if (!element) {
       throw new Error(`要素が見つかりません: ${this.containerSelector}`);
     }
@@ -121,7 +120,10 @@ export class ParticleApp {
     const height = rect.height || window.innerHeight;
 
     // モバイル対応: WebGL未対応時のフォールバック設定
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
     const rendererConfig = {
       ...RENDERER_CONFIG,
       backgroundAlpha: 0,
@@ -145,28 +147,32 @@ export class ParticleApp {
       // WebGLコンテキストの確認
       const renderer = this.app.renderer;
       console.log(`PIXI.js初期化完了 (${width}x${height})`);
-      console.log(`レンダラータイプ: ${renderer.type === PIXI.RENDERER_TYPE.WEBGL ? 'WebGL' : 'Canvas'}`);
-      
-      if (isMobile) {
-        console.log('モバイルデバイス用設定を適用');
-      }
+      console.log(
+        `レンダラータイプ: ${
+          renderer.type === PIXI.RENDERER_TYPE.WEBGL ? "WebGL" : "Canvas"
+        }`
+      );
 
+      if (isMobile) {
+        console.log("モバイルデバイス用設定を適用");
+      }
     } catch (error) {
-      console.error('PIXI.js初期化エラー:', error);
-      
+      console.error("PIXI.js初期化エラー:", error);
+
       // フォールバック: Canvas2Dレンダラーで再試行
       try {
-        console.log('Canvas2Dレンダラーでフォールバック中...');
+        console.log("Canvas2Dレンダラーでフォールバック中...");
         this.app = new PIXI.Application({
           width,
           height,
           ...rendererConfig,
           forceCanvas: true,
         });
-        console.log('Canvas2Dレンダラーでの初期化完了');
+        console.log("Canvas2Dレンダラーでの初期化完了");
       } catch (fallbackError) {
-        console.error('Canvas2Dフォールバックも失敗:', fallbackError);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error("Canvas2Dフォールバックも失敗:", fallbackError);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         throw new Error(`PIXI.js初期化に失敗しました: ${errorMessage}`);
       }
     }
@@ -186,11 +192,14 @@ export class ParticleApp {
 
     // フィルター管理を初期化
     this.filterManager = new FilterManager();
-    this.filterManager.applyAdvancedFiltersToStage(this.app.stage, this.app.renderer);
+    this.filterManager.applyAdvancedFiltersToStage(
+      this.app.stage,
+      this.app.renderer
+    );
 
     // パーティクルシステムを初期化
     this.particleSystem = new ParticleSystem(PIXI.Texture.WHITE, canvas);
-    
+
     // テクスチャジェネレーターを初期化
     this.textureGenerator = new TextureGenerator();
 
@@ -219,7 +228,9 @@ export class ParticleApp {
 
     const width = this.app.renderer.width;
     const height = this.app.renderer.height;
-    const currentSettings = this.settingsManager.getCurrentSettings(window.innerWidth);
+    const currentSettings = this.settingsManager.getCurrentSettings(
+      window.innerWidth
+    );
 
     // 設定値をデバッグ出力
     this.settingsManager.debugSettings(currentSettings, window.innerWidth);
@@ -247,7 +258,11 @@ export class ParticleApp {
   /**
    * テキストパーティクルを生成
    */
-  private async generateTextParticles(settings: ResolvedSettings, width: number, height: number): Promise<void> {
+  private async generateTextParticles(
+    settings: ResolvedSettings,
+    width: number,
+    height: number
+  ): Promise<void> {
     const text = this.options.text || "TEST";
     const fontString = this.fontManager.generateFontString(settings.size);
 
@@ -270,7 +285,11 @@ export class ParticleApp {
   /**
    * 画像パーティクルを生成
    */
-  private async generateImageParticles(settings: ResolvedSettings, width: number, height: number): Promise<void> {
+  private async generateImageParticles(
+    settings: ResolvedSettings,
+    width: number,
+    height: number
+  ): Promise<void> {
     if (!this.options.imageSrc) {
       throw new Error("画像パスが指定されていません");
     }
@@ -301,7 +320,9 @@ export class ParticleApp {
    */
   private startAnimationLoop(): void {
     if (!this.app || !this.particleSystem) {
-      throw new Error("アプリケーションまたはパーティクルシステムが初期化されていません");
+      throw new Error(
+        "アプリケーションまたはパーティクルシステムが初期化されていません"
+      );
     }
 
     this.app.ticker.add(() => {
@@ -351,7 +372,9 @@ export class ParticleApp {
 
     const width = this.app.renderer.width;
     const height = this.app.renderer.height;
-    const currentSettings = this.settingsManager.getCurrentSettings(window.innerWidth);
+    const currentSettings = this.settingsManager.getCurrentSettings(
+      window.innerWidth
+    );
 
     // 設定値をデバッグ出力
     this.settingsManager.debugSettings(currentSettings, window.innerWidth);
@@ -369,7 +392,11 @@ export class ParticleApp {
   /**
    * テキストパーティクルを再生成
    */
-  private async regenerateTextParticles(settings: ResolvedSettings, width: number, height: number): Promise<void> {
+  private async regenerateTextParticles(
+    settings: ResolvedSettings,
+    width: number,
+    height: number
+  ): Promise<void> {
     const text = this.options.text || "TEST";
     const fontString = this.fontManager.generateFontString(settings.size);
 
@@ -389,7 +416,11 @@ export class ParticleApp {
   /**
    * 画像パーティクルを再生成
    */
-  private async regenerateImageParticles(settings: ResolvedSettings, width: number, height: number): Promise<void> {
+  private async regenerateImageParticles(
+    settings: ResolvedSettings,
+    width: number,
+    height: number
+  ): Promise<void> {
     if (!this.options.imageSrc) {
       return;
     }
@@ -404,7 +435,9 @@ export class ParticleApp {
         imageWidth,
         imageHeight,
         (positions) => {
-          console.log(`リサイズ時に画像から${positions.length}個のパーティクルを再生成`);
+          console.log(
+            `リサイズ時に画像から${positions.length}個のパーティクルを再生成`
+          );
           this.particleSystem!.createParticles(positions, this.app!.stage);
           this.particleSystem!.setParticleScale(settings.scale * 0.1);
           resolve();
@@ -422,7 +455,7 @@ export class ParticleApp {
    */
   setColor(color: number): void {
     this.ensureInitialized();
-    this.settingsApplicator.applySingleSetting('color', color);
+    this.settingsApplicator.applySingleSetting("color", color);
   }
 
   /**
@@ -430,7 +463,7 @@ export class ParticleApp {
    */
   setBlurStrength(blur: number): void {
     this.ensureInitialized();
-    this.settingsApplicator.applySingleSetting('blur', blur);
+    this.settingsApplicator.applySingleSetting("blur", blur);
   }
 
   /**
@@ -438,7 +471,7 @@ export class ParticleApp {
    */
   setThreshold(threshold: number): void {
     this.ensureInitialized();
-    this.settingsApplicator.applySingleSetting('threshold', threshold);
+    this.settingsApplicator.applySingleSetting("threshold", threshold);
   }
 
   /**
@@ -446,7 +479,7 @@ export class ParticleApp {
    */
   setMouseRadius(radius: number): void {
     this.ensureInitialized();
-    this.settingsApplicator.applySingleSetting('mouseRadius', radius);
+    this.settingsApplicator.applySingleSetting("mouseRadius", radius);
   }
 
   /**
@@ -454,12 +487,12 @@ export class ParticleApp {
    */
   setPhysicsParams(friction?: number, moveSpeed?: number): void {
     this.ensureInitialized();
-    
+
     if (!this.particleSystem) {
       console.warn("ParticleSystemが初期化されていません");
       return;
     }
-    
+
     this.particleSystem.setPhysicsParams(friction, moveSpeed);
   }
 
@@ -467,7 +500,7 @@ export class ParticleApp {
    * パーティクルの色を変更（非推奨 - 互換性のため）
    */
   setParticleTint(tint: number): void {
-    console.warn('setParticleTintは非推奨です。setColorを使用してください。');
+    console.warn("setParticleTintは非推奨です。setColorを使用してください。");
     this.setColor(tint);
   }
 
@@ -480,12 +513,12 @@ export class ParticleApp {
    */
   resetFilters(): void {
     this.ensureInitialized();
-    
+
     if (!this.filterManager) {
       console.warn("FilterManagerが初期化されていません");
       return;
     }
-    
+
     this.filterManager.resetToDefaults();
   }
 
@@ -494,12 +527,12 @@ export class ParticleApp {
    */
   useSimpleBlur(): void {
     this.ensureInitialized();
-    
+
     if (!this.filterManager || !this.app) {
       console.warn("必要なコンポーネントが初期化されていません");
       return;
     }
-    
+
     this.filterManager.applyToStage(this.app.stage, this.app.renderer);
   }
 
@@ -508,13 +541,16 @@ export class ParticleApp {
    */
   useAdvancedFilters(): void {
     this.ensureInitialized();
-    
+
     if (!this.filterManager || !this.app) {
       console.warn("必要なコンポーネントが初期化されていません");
       return;
     }
-    
-    this.filterManager.applyAdvancedFiltersToStage(this.app.stage, this.app.renderer);
+
+    this.filterManager.applyAdvancedFiltersToStage(
+      this.app.stage,
+      this.app.renderer
+    );
   }
 
   // ========================================
@@ -547,7 +583,7 @@ export class ParticleApp {
 
     this.app.renderer.resize(newWidth, newHeight);
     await this.regenerateParticles();
-    
+
     console.log(`手動リサイズ完了: ${newWidth}x${newHeight}`);
   }
 
@@ -592,14 +628,16 @@ export class ParticleApp {
       isInitialized: this.isInitialized,
       containerSelector: this.containerSelector,
       options: this.options,
-      currentSettings: this.isInitialized 
+      currentSettings: this.isInitialized
         ? this.settingsManager.getCurrentSettings(window.innerWidth)
         : null,
       eventListenerCount: this.eventManager.getListenerCount(),
-      appSize: this.app ? {
-        width: this.app.renderer.width,
-        height: this.app.renderer.height
-      } : null
+      appSize: this.app
+        ? {
+            width: this.app.renderer.width,
+            height: this.app.renderer.height,
+          }
+        : null,
     };
   }
 
