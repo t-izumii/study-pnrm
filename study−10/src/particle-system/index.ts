@@ -8,20 +8,7 @@ export { ParticleFactory } from "./core/ParticleFactory";
 // 従来のメインクラス（後方互換性）
 export { ParticleApp } from "./core/ParticleApp";
 
-// プラグインシステム
-export { PluginManager } from "./plugins/plugin-system";
-export type { ParticlePlugin } from "./plugins/plugin-system";
 
-// 組み込みプラグイン
-export {
-  PerformanceMonitorPlugin,
-  KeyboardControlPlugin,
-  StatsDisplayPlugin,
-  registerBuiltInPlugins,
-} from "./plugins/built-in-plugins";
-
-// 開発ツール
-export { DevTools } from "./dev-tools/dev-tools";
 
 // ==========================================
 // 名前空間エクスポート（新しい推奨方法）
@@ -120,14 +107,11 @@ export {
  * import { Core, Utils, Types } from './particle-system';
  * const app = new Core.ParticleApp('.container', options);
  * 
- * // 開発ツールの使用
- * import { DevTools } from './particle-system';
- * DevTools.enable();
- * DevTools.enablePerformanceMonitoring(app);
- * DevTools.showDebugPanel(app);
- * 
- * // プラグインシステム
- * import { PluginManager, registerBuiltInPlugins } from './particle-system';
- * registerBuiltInPlugins();
- * PluginManager.attachToApp(app, 'performance-monitor');
+ * // 従来の方法（後方互換性）
+ * import { ParticleApp } from './particle-system';
+ * const app = new ParticleApp('.container', {
+ *   type: 'text',
+ *   text: 'Hello',
+ *   size: 100
+ * });
  */
