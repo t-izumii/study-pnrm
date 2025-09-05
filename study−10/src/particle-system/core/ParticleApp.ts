@@ -127,6 +127,7 @@ export class ParticleApp {
     const rendererConfig = {
       ...RENDERER_CONFIG,
       backgroundAlpha: 0,
+      resolution: 1, // 解像度を1に固定してサイズの問題を回避
     };
 
     // モバイルデバイスでは保守的な設定を使用

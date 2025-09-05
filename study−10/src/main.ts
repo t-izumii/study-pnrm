@@ -33,6 +33,7 @@ async function main() {
     density: 4,
     scale: 2,
     blur: 0,
+    threshold: 0.5,
     size: 110,
     mouseRadius: 50,
     font: {
