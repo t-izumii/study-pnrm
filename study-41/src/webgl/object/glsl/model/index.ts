@@ -10,6 +10,10 @@ export default class ModelObject {
   loader: GLTFLoader;
   rect: DOMRect;
   unsubscribes: (() => void)[] = [];
+  targetRotationX = 0;
+  targetRotationY = 0;
+  currentRotationX = 0;
+  currentRotationY = 0;
 
   constructor(el: HTMLElement) {
     this.el = el;
@@ -39,6 +43,7 @@ export default class ModelObject {
 
       this.updateTransform();
       this.setupStateListeners();
+      this.startAnimationLoop();
     } catch (error) {
       console.error("Failed to load GLB model:", error);
     }
@@ -51,7 +56,14 @@ export default class ModelObject {
     const viewportUnsubscribe = globalState.viewport.subscribe(() =>
       this.updateTransform()
     );
-    this.unsubscribes.push(scrollUnsubscribe, viewportUnsubscribe);
+    const mouseUnsubscribe = globalState.mouse.subscribe(() =>
+      this.updateRotation()
+    );
+    this.unsubscribes.push(
+      scrollUnsubscribe,
+      viewportUnsubscribe,
+      mouseUnsubscribe
+    );
   }
 
   updateTransform() {
@@ -70,6 +82,40 @@ export default class ModelObject {
 
     this.model.position.set(centerX, centerY, 0);
     this.model.scale.setScalar(scale);
+  }
+
+  updateRotation() {
+    const mouseX = globalState.mouse.x;
+    const mouseY = globalState.mouse.y;
+
+    // マウス位置を-1から1の範囲に正規化
+    const normalizedX = (mouseX / globalState.viewport.width) * 2 - 1;
+    const normalizedY = (mouseY / globalState.viewport.height) * 2 - 1;
+
+    // マウス位置に基づいて目標回転角度を設定
+    const rotationIntensity = 0.8;
+    this.targetRotationY = normalizedX * rotationIntensity;
+    this.targetRotationX = normalizedY * rotationIntensity;
+  }
+
+  startAnimationLoop() {
+    const animate = () => {
+      if (this.model) {
+        // 線形補間でスムーズな回転
+        const lerpFactor = 0.1;
+        this.currentRotationX +=
+          (this.targetRotationX - this.currentRotationX) * lerpFactor;
+        this.currentRotationY +=
+          (this.targetRotationY - this.currentRotationY) * lerpFactor;
+        this.model.rotation.set(
+          this.currentRotationX,
+          this.currentRotationY,
+          0
+        );
+      }
+      requestAnimationFrame(animate);
+    };
+    animate();
   }
 
   updateGeometry() {
