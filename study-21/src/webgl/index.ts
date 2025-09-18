@@ -85,7 +85,7 @@ export class WebGLApp {
   }
 
   private createMaterial(): void {
-    const texture = this.loadTexture("src/test.png");
+    const texture = this.loadTexture("src/image.png");
 
     this.material = new THREE.ShaderMaterial({
       uniforms: {
