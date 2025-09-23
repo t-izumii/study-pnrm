@@ -7,6 +7,7 @@ export class WebGLApplication {
   private scene: Scene;
   private camera: PerspectiveCamera;
   private objectManager: ObjectManager;
+  private hasLoggedRender = false;
 
   constructor() {
     this.renderer = this.createRenderer();
@@ -24,23 +25,25 @@ export class WebGLApplication {
       antialias: true,
       powerPreference: "high-performance",
     });
-    
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0);
+    renderer.setClearColor(0x222222, 1);
     renderer.outputColorSpace = "srgb";
-    
+
     return renderer;
   }
 
   private createCamera(): PerspectiveCamera {
-    const distance = 1000;
+    const fov = 75;
     const aspect = window.innerWidth / window.innerHeight;
-    const fov = 2 * Math.atan(window.innerHeight / 2 / distance) * (180 / Math.PI);
+    const near = 0.1;
+    const far = 2000;
 
-    const camera = new PerspectiveCamera(fov, aspect, 0.1, distance * 2);
-    camera.position.z = distance;
-    
+    const camera = new PerspectiveCamera(fov, aspect, near, far);
+    camera.position.set(0, 0, 100);
+    camera.lookAt(0, 0, 0);
+
     return camera;
   }
 
@@ -67,6 +70,14 @@ export class WebGLApplication {
 
   async start() {
     await this.objectManager.init();
+    
+    // ModelObjectにシーンを設定
+    this.objectManager.objects.forEach((obj: any) => {
+      if (obj.setScene) {
+        obj.setScene(this.scene);
+      }
+    });
+    
     this.render();
   }
 
