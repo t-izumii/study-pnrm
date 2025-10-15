@@ -1,4 +1,4 @@
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import {
   Mesh,
   MeshBasicMaterial,
@@ -12,7 +12,7 @@ import {
   OrbitControls,
   MeshPortalMaterial,
 } from "@react-three/drei";
-import { Model } from "./components/model.jsx";
+import { Model } from "./components/model";
 import { useRef, useState } from "react";
 import "./app.css";
 
@@ -100,12 +100,18 @@ function App() {
           setIsHovering(false);
         }}
       >
+        <OrbitControls />
         <TiltableMesh mousePosition={mousePosition} isHovering={isHovering}>
-          <ambientLight intensity={1.5} />
+          <ambientLight intensity={3} />
           <directionalLight position={[1, 1, 1]} intensity={1} />
           <Model scale={[0.8, 0.8, 0.8]} position={[0, -1.5, 0]} />
           <Sphere />
         </TiltableMesh>
+
+        {/* <ambientLight intensity={3} />
+        <directionalLight position={[1, 1, 1]} intensity={1} />
+        <Model scale={[0.8, 0.8, 0.8]} position={[0, -1.5, 0]} />
+        <Sphere /> */}
       </Canvas>
     </>
   );
