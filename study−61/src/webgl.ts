@@ -27,7 +27,7 @@ const positions = new Float32Array(particleCount * 3);
 const uvs = new Float32Array(particleCount * 2);
 
 // パーティクル間の間隔（ピクセル単位で配置）
-const spacing = 0.25; // この値でサイズ調整可能
+const spacing = 0.1; // この値でサイズ調整可能
 
 for (let y = 0; y < height; y++) {
   for (let x = 0; x < width; x++) {
@@ -54,7 +54,7 @@ geometryParticles.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
 
 // 動画要素を作成
 const video = document.createElement("video");
-video.src = "/video_1.mp4";
+video.src = "/video_2.mp4";
 video.loop = true;
 video.muted = true;
 video.playsInline = true;

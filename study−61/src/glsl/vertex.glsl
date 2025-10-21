@@ -35,8 +35,5 @@ void main() {
   ) * 0.1; // XY方向に微妙なノイズ
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-
-  // パーティクルサイズもノイズで変化
-  float sizeNoise = noise(position.xy * 5.0 + uTime * 0.2);
-  gl_PointSize = 10.0 + sizeNoise * 2.0;
+  gl_PointSize = 4.0;
 }

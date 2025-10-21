@@ -6,7 +6,7 @@ void main() {
   vec2 center = vec2(0.5, 0.5);
   float dist = distance(gl_PointCoord, center);
 
-  // 半径0.5の円の外側を破棄
+  //  半径0.5の円の外側を破棄
   if (dist > 0.5) {
     discard;
   }
@@ -18,9 +18,9 @@ void main() {
   float luminance = dot(color.rgb, vec3(0.299, 0.587, 0.114));
 
   // 白に近い色（輝度が0.995以上）を透明にする
-  if (luminance > 0.999) {
+  if (luminance > 0.99) {
     discard; // このピクセルを描画しない
   }
 
-  gl_FragColor = vec4(luminance, luminance, luminance, 1.0);
+  gl_FragColor = vec4(luminance,luminance, 0.9, 1.0);
 }
