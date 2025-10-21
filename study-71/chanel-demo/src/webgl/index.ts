@@ -18,7 +18,7 @@ export class WebGLApp {
 
   constructor() {
     this.modelCover = null;
-    this.modelCoverOpenRad = null;
+    this.modelCoverOpenRad = -Math.PI / 3;
     this.modelCoverCloseRad = 0;
 
     this.clock = new THREE.Clock();
@@ -70,7 +70,6 @@ export class WebGLApp {
           console.log(child.name);
 
           if (child.name === "Couvercle") {
-            this.modelCoverOpenRad = child.rotation.x;
             child.rotation.x = 0;
             this.modelCover = child;
           }
