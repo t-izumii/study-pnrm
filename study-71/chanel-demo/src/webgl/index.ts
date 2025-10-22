@@ -48,19 +48,56 @@ export class WebGLApp {
     );
     this.camera.position.z = 1;
 
-    // 環境光（ベースの明るさ）
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    // 環境光（ベースの明るさ）- 影の部分も見えるように
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2.5);
     this.scene.add(ambientLight);
 
+    // 半球ライト（空と地面からの反射光を再現）
+    const hemisphereLight = new THREE.HemisphereLight(
+      0xffffff, // 空の色
+      0x444444, // 地面の色
+      1.5
+    );
+    this.scene.add(hemisphereLight);
+
     // メインライト（上から柔らかく）
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    directionalLight.position.set(2, 3, 2);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    directionalLight.position.set(2, 1, 2);
     this.scene.add(directionalLight);
 
+    // メインライトのヘルパー（青色）
+    const directionalLightHelper = new THREE.DirectionalLightHelper(
+      directionalLight,
+      1,
+      0x0000ff
+    );
+    this.scene.add(directionalLightHelper);
+
     // リムライト（輪郭を美しく）
-    const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const rimLight = new THREE.DirectionalLight(0xffffff, 2);
     rimLight.position.set(-1, 1, -1);
     this.scene.add(rimLight);
+
+    // リムライトのヘルパー（赤色）
+    const rimLightHelper = new THREE.DirectionalLightHelper(
+      rimLight,
+      0.5,
+      0xff0000
+    );
+    this.scene.add(rimLightHelper);
+
+    // バックライト（影の部分を明るく）
+    const backLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    backLight.position.set(0, -2, -3);
+    this.scene.add(backLight);
+
+    // バックライトのヘルパー（緑色）
+    const backLightHelper = new THREE.DirectionalLightHelper(
+      backLight,
+      0.5,
+      0x00ff00
+    );
+    this.scene.add(backLightHelper);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -80,22 +117,24 @@ export class WebGLApp {
         if (child.isMesh) {
           console.log(child.name);
 
-          // マテリアルに光沢感を追加
+          // プラスチックのような質感に設定
           if (child.material) {
             if (Array.isArray(child.material)) {
               child.material.forEach((mat) => {
-                if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
-                  mat.metalness = 0.7;
-                  mat.roughness = 0.25;
-                }
+                // if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
+                //   mat.metalness = 0.5; // プラスチックなので金属感ゼロ
+                //   mat.roughness = 1; // 少し粗めで柔らかい光沢
+                //   mat.envMapIntensity = 1; // 環境マップの反射を控えめに
+                // }
               });
             } else {
               if (
                 child.material.isMeshStandardMaterial ||
                 child.material.isMeshPhysicalMaterial
               ) {
-                child.material.metalness = 0.7;
-                child.material.roughness = 0.25;
+                child.material.metalness = 0.4; // プラスチックなので金属感ゼロ
+                child.material.roughness = 0.4; // 少し粗めで柔らかい光沢
+                child.material.envMapIntensity = 1; // 環境マップの反射を控えめに
               }
             }
           }
