@@ -42,26 +42,27 @@ export class WebGLApp {
     );
     this.camera.position.z = 1;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    // 環境光（ベースの明るさ）
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     this.scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(1, 1, 1);
+    // メインライト（上から柔らかく）
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight.position.set(2, 3, 2);
     this.scene.add(directionalLight);
 
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(0, 1, 0);
-    this.scene.add(pointLight);
+    // リムライト（輪郭を美しく）
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    rimLight.position.set(-1, 1, -1);
+    this.scene.add(rimLight);
 
-    const spotLight = new THREE.SpotLight(0xffffff, 1);
-    spotLight.position.set(0, 1, 0);
-    this.scene.add(spotLight);
-
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setClearColor(0xffffff, 1);
-    // 両面レンダリングを有効化
+    // トーンマッピングで高級感のある描画
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.1;
     this.renderer.shadowMap.enabled = true;
     document.body.appendChild(this.renderer.domElement);
 
@@ -74,6 +75,23 @@ export class WebGLApp {
       gltf.scene.traverse((child) => {
         if (child.isMesh) {
           console.log(child.name);
+
+          // マテリアルに光沢感を追加
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach((mat) => {
+                if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
+                  mat.metalness = 0.7;
+                  mat.roughness = 0.25;
+                }
+              });
+            } else {
+              if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
+                child.material.metalness = 0.7;
+                child.material.roughness = 0.25;
+              }
+            }
+          }
 
           if (child.name === "Couvercle") {
             child.rotation.x = 0;
