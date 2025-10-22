@@ -11,19 +11,25 @@ export class WebGLApp {
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private clock: THREE.Clock;
+  private group: THREE.Group;
   private mesh: THREE.Mesh;
-  private controls: OrbitControls;
   private modelCover: any;
   private modelCoverOpenRad: any;
   private modelCoverCloseRad: any;
-  private mirrorMesh: any;
   private reflector: Reflector;
+  private isDragging: boolean;
+  private previousMousePosition: { x: number; y: number };
+  private rotationVelocity: { x: number; y: number };
+  private hasMoved: boolean;
 
   constructor() {
     this.modelCover = null;
     this.modelCoverOpenRad = -Math.PI / 2.5;
     this.modelCoverCloseRad = 0;
-    this.mirrorMesh = null;
+    this.isDragging = false;
+    this.previousMousePosition = { x: 0, y: 0 };
+    this.rotationVelocity = { x: 0, y: 0 };
+    this.hasMoved = false;
 
     this.clock = new THREE.Clock();
     this.init();
@@ -100,9 +106,6 @@ export class WebGLApp {
           }
 
           if (child.name === "Mirror") {
-            // Mirrorメッシュを保存
-            this.mirrorMesh = child;
-
             // 元のメッシュのジオメトリとトランスフォームを取得
             const geometry = child.geometry;
 
@@ -141,7 +144,10 @@ export class WebGLApp {
       this.mesh.position.y = -0.1;
       this.mesh.rotation.y = -Math.PI / 6;
       this.mesh.rotation.x = Math.PI / 6;
-      this.scene.add(this.mesh);
+
+      this.group = new THREE.Group();
+      this.group.add(this.mesh);
+      this.scene.add(this.group);
 
       // モデル読み込み完了後にアニメーション実行
       this.coverAnimation();
@@ -190,9 +196,96 @@ export class WebGLApp {
   }
 
   setUpEventListener() {
-    window.addEventListener("click", () => {
+    window.addEventListener("click", (e) => {
+      // ドラッグ後のクリックは無視
+      if (this.hasMoved) {
+        return;
+      }
       this.coverAnimation();
       this.rotateAnimation();
+    });
+
+    // マウスドラッグイベント
+    window.addEventListener("mousedown", (e) => {
+      this.isDragging = true;
+      this.hasMoved = false;
+      this.previousMousePosition = {
+        x: e.clientX,
+        y: e.clientY,
+      };
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!this.isDragging || !this.group) return;
+
+      const deltaX = e.clientX - this.previousMousePosition.x;
+      const deltaY = e.clientY - this.previousMousePosition.y;
+
+      // マウスが移動したことを記録
+      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+        this.hasMoved = true;
+      }
+
+      // 回転速度を設定
+      this.rotationVelocity.y = deltaX * 0.005;
+      this.rotationVelocity.x = deltaY * 0.005;
+
+      // groupを回転
+      this.group.rotation.y += this.rotationVelocity.y;
+      this.group.rotation.x += this.rotationVelocity.x;
+
+      this.previousMousePosition = {
+        x: e.clientX,
+        y: e.clientY,
+      };
+    });
+
+    window.addEventListener("mouseup", () => {
+      this.isDragging = false;
+      // 少し遅延させてからhasMovedをリセット
+      setTimeout(() => {
+        this.hasMoved = false;
+      }, 100);
+    });
+
+    // タッチイベント（モバイル対応）
+    window.addEventListener("touchstart", (e) => {
+      this.isDragging = true;
+      this.hasMoved = false;
+      this.previousMousePosition = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    });
+
+    window.addEventListener("touchmove", (e) => {
+      if (!this.isDragging || !this.group) return;
+
+      const deltaX = e.touches[0].clientX - this.previousMousePosition.x;
+      const deltaY = e.touches[0].clientY - this.previousMousePosition.y;
+
+      // タッチが移動したことを記録
+      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+        this.hasMoved = true;
+      }
+
+      this.rotationVelocity.y = deltaX * 0.005;
+      this.rotationVelocity.x = deltaY * 0.005;
+
+      this.group.rotation.y += this.rotationVelocity.y;
+      this.group.rotation.x += this.rotationVelocity.x;
+
+      this.previousMousePosition = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    });
+
+    window.addEventListener("touchend", () => {
+      this.isDragging = false;
+      setTimeout(() => {
+        this.hasMoved = false;
+      }, 100);
     });
   }
 
