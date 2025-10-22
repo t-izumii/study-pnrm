@@ -3,15 +3,14 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { Reflector } from "three/addons/objects/Reflector.js";
 import gsap from "gsap";
-
-console.log(THREE);
-
 export class WebGLApp {
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
   private clock: THREE.Clock;
   private group: THREE.Group;
+  private positionGroup: THREE.Group;
+  private dragGroup: THREE.Group;
   private mesh: THREE.Mesh;
   private modelCover: any;
   private modelCoverOpenRad: any;
@@ -21,6 +20,9 @@ export class WebGLApp {
   private previousMousePosition: { x: number; y: number };
   private rotationVelocity: { x: number; y: number };
   private hasMoved: boolean;
+  private itemArray: { [key: string]: THREE.Mesh[] }; // {baroque: [baroque-1, baroque-2, ...], stellaire: [...], ...}
+  private itemTypes: string[] = ["baroque", "stellaire", "mad", "couture"];
+  private activeIndex: number;
 
   constructor() {
     this.modelCover = null;
@@ -30,6 +32,13 @@ export class WebGLApp {
     this.previousMousePosition = { x: 0, y: 0 };
     this.rotationVelocity = { x: 0, y: 0 };
     this.hasMoved = false;
+    this.itemArray = {
+      baroque: [],
+      stellaire: [],
+      mad: [],
+      couture: [],
+    };
+    this.activeIndex = 0;
 
     this.clock = new THREE.Clock();
     this.init();
@@ -49,7 +58,7 @@ export class WebGLApp {
     this.camera.position.z = 1;
 
     // 環境光（ベースの明るさ）- 影の部分も見えるように
-    const ambientLight = new THREE.AmbientLight(0xffffff, 2.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 5);
     this.scene.add(ambientLight);
 
     // 半球ライト（空と地面からの反射光を再現）
@@ -115,33 +124,27 @@ export class WebGLApp {
     loader.load("/model.glb", (gltf) => {
       gltf.scene.traverse((child) => {
         if (child.isMesh) {
-          console.log(child.name);
+          // console.log(child.name);
 
-          // プラスチックのような質感に設定
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach((mat) => {
-                // if (mat.isMeshStandardMaterial || mat.isMeshPhysicalMaterial) {
-                //   mat.metalness = 0.5; // プラスチックなので金属感ゼロ
-                //   mat.roughness = 1; // 少し粗めで柔らかい光沢
-                //   mat.envMapIntensity = 1; // 環境マップの反射を控えめに
-                // }
-              });
-            } else {
-              if (
-                child.material.isMeshStandardMaterial ||
-                child.material.isMeshPhysicalMaterial
-              ) {
-                child.material.metalness = 0.4; // プラスチックなので金属感ゼロ
-                child.material.roughness = 0.4; // 少し粗めで柔らかい光沢
-                child.material.envMapIntensity = 1; // 環境マップの反射を控えめに
-              }
-            }
+          if (
+            child.name === "Contenant" ||
+            child.name === "Manche1" ||
+            child.name === "Manche2" ||
+            child.name === "Couvercle" ||
+            child.name === "Mirror" ||
+            child.name === "Clover"
+          ) {
+            child.material.color.set(0x1a1a1a); // 真っ黒より少し明るめ
+            child.material.metalness = 0.6; // メタリック感を強く
+            child.material.roughness = 0.7; // 光沢を強く（ツヤツヤに）
+            child.material.envMapIntensity = 1.2; // 環境マップの反射を強く
           }
 
           if (child.name === "Couvercle") {
             child.rotation.x = 0;
             this.modelCover = child;
+            child.material.map = null; // テクスチャを外す
+            child.material.needsUpdate = true; // マテリアルを更新
           }
 
           if (child.name === "Mirror") {
@@ -150,7 +153,7 @@ export class WebGLApp {
 
             // Reflectorを作成
             this.reflector = new Reflector(geometry, {
-              clipBias: 0.063,
+              clipBias: 0.055,
               textureWidth: window.innerWidth * window.devicePixelRatio,
               textureHeight: window.innerHeight * window.devicePixelRatio,
               color: 0xffffff,
@@ -158,7 +161,7 @@ export class WebGLApp {
 
             // 元のメッシュの位置・回転・スケールをReflectorにコピー
             this.reflector.position.copy(child.position);
-            this.reflector.position.y -= 0.006;
+            // this.reflector.position.y -= 0.006;
             this.reflector.rotation.copy(child.rotation);
             this.reflector.scale.copy(child.scale);
 
@@ -172,25 +175,91 @@ export class WebGLApp {
               // @ts-ignore
               this.reflector.material.side = THREE.DoubleSide;
             }
+          }
 
-            console.log("Mirror setup complete with Reflector");
+          if (child.name === "Clover") {
+            child.material.transparent = true;
+            child.material.opacity = 0;
+          }
+
+          if (
+            child.name.startsWith("baroque-") ||
+            child.name.startsWith("stellaire-") ||
+            child.name.startsWith("mad-") ||
+            child.name.startsWith("couture-")
+          ) {
+            // アイテム名から種類を抽出 (baroque-1 → baroque)
+            const itemType = child.name.split("-")[0];
+
+            if (this.itemArray[itemType]) {
+              this.itemArray[itemType].push(child as THREE.Mesh);
+            }
+
+            // 初期状態: すべて透過
+            child.material.transparent = true;
+            child.material.opacity = 0;
           }
         }
       });
 
+      // 配列を番号順にソート
+      Object.keys(this.itemArray).forEach((key) => {
+        this.itemArray[key].sort((a, b) => {
+          const numA = parseInt(a.name.split("-")[1]);
+          const numB = parseInt(b.name.split("-")[1]);
+          return numA - numB;
+        });
+      });
+
       this.mesh = gltf.scene;
       this.mesh.scale.set(4, 4, 4);
-      this.mesh.position.y = -0.1;
-      this.mesh.rotation.y = -Math.PI / 6;
-      this.mesh.rotation.x = Math.PI / 6;
+      this.mesh.position.z = -0.05;
+      this.mesh.rotation.x = degToRad(90);
+      this.mesh.rotation.y = degToRad(45);
 
+      // アニメーション用のグループ
       this.group = new THREE.Group();
       this.group.add(this.mesh);
-      this.scene.add(this.group);
+
+      // ポジション調整用のグループ（中間層）
+      this.positionGroup = new THREE.Group();
+      this.positionGroup.rotation.x = degToRad(-60);
+      this.positionGroup.rotation.z = degToRad(-25);
+      this.positionGroup.position.y = -0.05;
+      this.positionGroup.position.z = 0.1;
+      this.positionGroup.add(this.group);
+
+      // ドラッグ操作用のグループ（外側）
+      this.dragGroup = new THREE.Group();
+      this.dragGroup.add(this.positionGroup);
+      this.scene.add(this.dragGroup);
+
+      // 初期表示: baroqueを表示
+      this.viewItem("baroque");
 
       // モデル読み込み完了後にアニメーション実行
       this.coverAnimation();
     });
+  }
+
+  viewItem(itemType: string) {
+    // すべてのアイテムを非表示にする
+    setTimeout(() => {
+      Object.values(this.itemArray).forEach((meshArray) => {
+        meshArray.forEach((mesh) => {
+          mesh.visible = false;
+          mesh.material.opacity = 0;
+        });
+      });
+
+      // 指定されたアイテムタイプのすべてを表示
+      if (this.itemArray[itemType]) {
+        this.itemArray[itemType].forEach((mesh) => {
+          mesh.visible = true;
+          mesh.material.opacity = 1;
+        });
+      }
+    }, 1000);
   }
 
   coverAnimation() {
@@ -203,17 +272,17 @@ export class WebGLApp {
   rotateAnimation() {
     const timeline = gsap.timeline();
 
-    // 回転する
-    timeline.to(this.mesh.rotation, {
-      y: -Math.PI / 6 + -Math.PI * 2,
+    // 回転する（x軸とz軸を同時に回転）
+    timeline.to(this.group.rotation, {
+      y: Math.PI * 2,
       delay: 0.5,
       duration: 1,
       ease: "power2.inOut",
     });
 
     // 初期位置に戻す
-    timeline.to(this.mesh.rotation, {
-      y: -Math.PI / 6,
+    timeline.to(this.group.rotation, {
+      y: 0,
       duration: 0,
     });
   }
@@ -221,6 +290,13 @@ export class WebGLApp {
   closeAnimation() {
     gsap.to(this.modelCover.rotation, {
       x: this.modelCoverCloseRad,
+      duration: 1,
+      ease: "power2.inOut",
+    });
+
+    gsap.to(this.positionGroup.rotation, {
+      x: degToRad(-20),
+      z: 0,
       duration: 1,
       ease: "power2.inOut",
     });
@@ -232,6 +308,13 @@ export class WebGLApp {
       duration: 1,
       ease: "power2.inOut",
     });
+
+    gsap.to(this.positionGroup.rotation, {
+      x: degToRad(-60),
+      z: degToRad(-20),
+      duration: 1,
+      ease: "power2.inOut",
+    });
   }
 
   setUpEventListener() {
@@ -240,6 +323,12 @@ export class WebGLApp {
       if (this.hasMoved) {
         return;
       }
+
+      // アイテムタイプを切り替え
+      this.activeIndex = (this.activeIndex + 1) % this.itemTypes.length; // 0→1→2→3→0と循環
+      const currentItemType = this.itemTypes[this.activeIndex];
+      this.viewItem(currentItemType);
+
       this.coverAnimation();
       this.rotateAnimation();
     });
@@ -255,7 +344,7 @@ export class WebGLApp {
     });
 
     window.addEventListener("mousemove", (e) => {
-      if (!this.isDragging || !this.group) return;
+      if (!this.isDragging || !this.dragGroup) return;
 
       const deltaX = e.clientX - this.previousMousePosition.x;
       const deltaY = e.clientY - this.previousMousePosition.y;
@@ -269,9 +358,9 @@ export class WebGLApp {
       this.rotationVelocity.y = deltaX * 0.005;
       this.rotationVelocity.x = deltaY * 0.005;
 
-      // groupを回転
-      this.group.rotation.y += this.rotationVelocity.y;
-      this.group.rotation.x += this.rotationVelocity.x;
+      // dragGroupを回転（ドラッグ操作）
+      this.dragGroup.rotation.y += this.rotationVelocity.y;
+      this.dragGroup.rotation.x += this.rotationVelocity.x;
 
       this.previousMousePosition = {
         x: e.clientX,
@@ -298,7 +387,7 @@ export class WebGLApp {
     });
 
     window.addEventListener("touchmove", (e) => {
-      if (!this.isDragging || !this.group) return;
+      if (!this.isDragging || !this.dragGroup) return;
 
       const deltaX = e.touches[0].clientX - this.previousMousePosition.x;
       const deltaY = e.touches[0].clientY - this.previousMousePosition.y;
@@ -311,8 +400,9 @@ export class WebGLApp {
       this.rotationVelocity.y = deltaX * 0.005;
       this.rotationVelocity.x = deltaY * 0.005;
 
-      this.group.rotation.y += this.rotationVelocity.y;
-      this.group.rotation.x += this.rotationVelocity.x;
+      // dragGroupを回転（ドラッグ操作）
+      this.dragGroup.rotation.y += this.rotationVelocity.y;
+      this.dragGroup.rotation.x += this.rotationVelocity.x;
 
       this.previousMousePosition = {
         x: e.touches[0].clientX,
@@ -333,4 +423,8 @@ export class WebGLApp {
     this.clock.getElapsedTime();
     this.renderer.render(this.scene, this.camera);
   }
+}
+
+function degToRad(degrees: number): number {
+  return degrees * (Math.PI / 180);
 }
