@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { Reflector } from "three/addons/objects/Reflector.js";
 import gsap from "gsap";
 
 console.log(THREE);
@@ -15,11 +16,14 @@ export class WebGLApp {
   private modelCover: any;
   private modelCoverOpenRad: any;
   private modelCoverCloseRad: any;
+  private mirrorMesh: any;
+  private reflector: Reflector;
 
   constructor() {
     this.modelCover = null;
-    this.modelCoverOpenRad = -Math.PI / 3;
+    this.modelCoverOpenRad = -Math.PI / 2.5;
     this.modelCoverCloseRad = 0;
+    this.mirrorMesh = null;
 
     this.clock = new THREE.Clock();
     this.init();
@@ -56,7 +60,9 @@ export class WebGLApp {
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setClearColor(0x000000, 0);
+    this.renderer.setClearColor(0xffffff, 1);
+    // 両面レンダリングを有効化
+    this.renderer.shadowMap.enabled = true;
     document.body.appendChild(this.renderer.domElement);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -73,6 +79,41 @@ export class WebGLApp {
             child.rotation.x = 0;
             this.modelCover = child;
           }
+
+          if (child.name === "Mirror") {
+            // Mirrorメッシュを保存
+            this.mirrorMesh = child;
+
+            // 元のメッシュのジオメトリとトランスフォームを取得
+            const geometry = child.geometry;
+
+            // Reflectorを作成
+            this.reflector = new Reflector(geometry, {
+              clipBias: 0.063,
+              textureWidth: window.innerWidth * window.devicePixelRatio,
+              textureHeight: window.innerHeight * window.devicePixelRatio,
+              color: 0xffffff,
+            });
+
+            // 元のメッシュの位置・回転・スケールをReflectorにコピー
+            this.reflector.position.copy(child.position);
+            this.reflector.position.y -= 0.006;
+            this.reflector.rotation.copy(child.rotation);
+            this.reflector.scale.copy(child.scale);
+
+            // 元のメッシュを非表示にしてReflectorを追加
+            child.visible = false;
+            child.parent?.add(this.reflector);
+
+            // Reflectorの内部設定をカスタマイズ
+            // @ts-ignore - Reflectorの内部プロパティにアクセス
+            if (this.reflector.material) {
+              // @ts-ignore
+              this.reflector.material.side = THREE.DoubleSide;
+            }
+
+            console.log("Mirror setup complete with Reflector");
+          }
         }
       });
 
@@ -80,7 +121,7 @@ export class WebGLApp {
       this.mesh.scale.set(4, 4, 4);
       this.mesh.position.y = -0.1;
       this.mesh.rotation.y = -Math.PI / 6;
-      this.mesh.rotation.x = Math.PI / 8;
+      this.mesh.rotation.x = Math.PI / 6;
       this.scene.add(this.mesh);
 
       // モデル読み込み完了後にアニメーション実行
