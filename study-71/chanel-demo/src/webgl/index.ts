@@ -65,8 +65,6 @@ export class WebGLApp {
     this.renderer.toneMappingExposure = 1.1;
     this.renderer.shadowMap.enabled = true;
     document.body.appendChild(this.renderer.domElement);
-
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
   }
 
   loadModel() {
@@ -86,7 +84,10 @@ export class WebGLApp {
                 }
               });
             } else {
-              if (child.material.isMeshStandardMaterial || child.material.isMeshPhysicalMaterial) {
+              if (
+                child.material.isMeshStandardMaterial ||
+                child.material.isMeshPhysicalMaterial
+              ) {
                 child.material.metalness = 0.7;
                 child.material.roughness = 0.25;
               }
@@ -198,7 +199,6 @@ export class WebGLApp {
   animate() {
     requestAnimationFrame(this.animate.bind(this));
     this.clock.getElapsedTime();
-    this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
 }
