@@ -26,8 +26,8 @@ export class WebGLApp {
 
   constructor() {
     this.modelCover = null;
-    this.modelCoverOpenRad = -Math.PI / 2.5;
-    this.modelCoverCloseRad = 0;
+    this.modelCoverOpenRad = degToRad(-72);
+    this.modelCoverCloseRad = degToRad(0);
     this.isDragging = false;
     this.previousMousePosition = { x: 0, y: 0 };
     this.rotationVelocity = { x: 0, y: 0 };
@@ -58,19 +58,11 @@ export class WebGLApp {
     this.camera.position.z = 1;
 
     // 環境光（ベースの明るさ）- 影の部分も見えるように
-    const ambientLight = new THREE.AmbientLight(0xffffff, 5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 15);
     this.scene.add(ambientLight);
 
-    // 半球ライト（空と地面からの反射光を再現）
-    const hemisphereLight = new THREE.HemisphereLight(
-      0xffffff, // 空の色
-      0x444444, // 地面の色
-      1.5
-    );
-    this.scene.add(hemisphereLight);
-
     // メインライト（上から柔らかく）
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 6);
     directionalLight.position.set(2, 1, 2);
     this.scene.add(directionalLight);
 
@@ -82,31 +74,16 @@ export class WebGLApp {
     );
     this.scene.add(directionalLightHelper);
 
-    // リムライト（輪郭を美しく）
-    const rimLight = new THREE.DirectionalLight(0xffffff, 2);
-    rimLight.position.set(-1, 1, -1);
-    this.scene.add(rimLight);
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 6);
+    directionalLight2.position.set(-2, 1, -2);
+    this.scene.add(directionalLight2);
 
-    // リムライトのヘルパー（赤色）
-    const rimLightHelper = new THREE.DirectionalLightHelper(
-      rimLight,
-      0.5,
-      0xff0000
+    const directionalLightHelper2 = new THREE.DirectionalLightHelper(
+      directionalLight2,
+      1,
+      0x00ffff
     );
-    this.scene.add(rimLightHelper);
-
-    // バックライト（影の部分を明るく）
-    const backLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    backLight.position.set(0, -2, -3);
-    this.scene.add(backLight);
-
-    // バックライトのヘルパー（緑色）
-    const backLightHelper = new THREE.DirectionalLightHelper(
-      backLight,
-      0.5,
-      0x00ff00
-    );
-    this.scene.add(backLightHelper);
+    this.scene.add(directionalLightHelper2);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -134,17 +111,18 @@ export class WebGLApp {
             child.name === "Mirror" ||
             child.name === "Clover"
           ) {
-            child.material.color.set(0x1a1a1a); // 真っ黒より少し明るめ
-            child.material.metalness = 0.6; // メタリック感を強く
-            child.material.roughness = 0.7; // 光沢を強く（ツヤツヤに）
-            child.material.envMapIntensity = 1.2; // 環境マップの反射を強く
+            child.material.color.set(0x111111); // 真っ黒より少し明るめ
+            child.material.metalness = 0.2; // メタリック感を強く
+            child.material.roughness = 0.4; // 光沢を強く（ツヤツヤに）
+            child.castShadow = false; // 影を落とさない
+            child.receiveShadow = false; // 影を受けない
           }
 
           if (child.name === "Couvercle") {
             child.rotation.x = 0;
             this.modelCover = child;
-            child.material.map = null; // テクスチャを外す
-            child.material.needsUpdate = true; // マテリアルを更新
+            // child.material.map = null; // テクスチャを外す
+            // child.material.needsUpdate = true; // マテリアルを更新
           }
 
           if (child.name === "Mirror") {
@@ -153,7 +131,7 @@ export class WebGLApp {
 
             // Reflectorを作成
             this.reflector = new Reflector(geometry, {
-              clipBias: 0.055,
+              clipBias: 0.045,
               textureWidth: window.innerWidth * window.devicePixelRatio,
               textureHeight: window.innerHeight * window.devicePixelRatio,
               color: 0xffffff,
@@ -161,7 +139,6 @@ export class WebGLApp {
 
             // 元のメッシュの位置・回転・スケールをReflectorにコピー
             this.reflector.position.copy(child.position);
-            // this.reflector.position.y -= 0.006;
             this.reflector.rotation.copy(child.rotation);
             this.reflector.scale.copy(child.scale);
 
@@ -199,6 +176,19 @@ export class WebGLApp {
             child.material.transparent = true;
             child.material.opacity = 0;
           }
+
+          if (child.name.endsWith("-1")) {
+            child.material.color.set(0xffb8b6);
+          }
+          if (child.name.endsWith("-2")) {
+            child.material.color.set(0xffcdab);
+          }
+          if (child.name.endsWith("-3")) {
+            child.material.color.set(0xffabd8);
+          }
+          if (child.name.endsWith("-4")) {
+            child.material.color.set(0xd5ffab);
+          }
         }
       });
 
@@ -212,10 +202,9 @@ export class WebGLApp {
       });
 
       this.mesh = gltf.scene;
-      this.mesh.scale.set(4, 4, 4);
+      this.mesh.scale.set(3.5, 3.5, 3.5);
       this.mesh.position.z = -0.05;
-      this.mesh.rotation.x = degToRad(90);
-      this.mesh.rotation.y = degToRad(45);
+      this.mesh.rotation.x = degToRad(110);
 
       // アニメーション用のグループ
       this.group = new THREE.Group();
@@ -223,10 +212,9 @@ export class WebGLApp {
 
       // ポジション調整用のグループ（中間層）
       this.positionGroup = new THREE.Group();
-      this.positionGroup.rotation.x = degToRad(-60);
-      this.positionGroup.rotation.z = degToRad(-25);
-      this.positionGroup.position.y = -0.05;
-      this.positionGroup.position.z = 0.1;
+      this.positionGroup.rotation.x = degToRad(-80);
+      this.positionGroup.rotation.z = degToRad(30);
+      this.positionGroup.position.y = -0.1;
       this.positionGroup.add(this.group);
 
       // ドラッグ操作用のグループ（外側）
@@ -266,7 +254,7 @@ export class WebGLApp {
     const timeline = gsap.timeline();
 
     timeline.add(() => this.closeAnimation());
-    timeline.add(() => this.openAnimation(), "+=1");
+    timeline.add(() => this.openAnimation(), "+=1.5");
   }
 
   rotateAnimation() {
@@ -276,7 +264,7 @@ export class WebGLApp {
     timeline.to(this.group.rotation, {
       y: Math.PI * 2,
       delay: 0.5,
-      duration: 1,
+      duration: 1.5,
       ease: "power2.inOut",
     });
 
@@ -295,7 +283,21 @@ export class WebGLApp {
     });
 
     gsap.to(this.positionGroup.rotation, {
-      x: degToRad(-20),
+      x: degToRad(-10),
+      z: degToRad(10),
+      duration: 1,
+      ease: "power2.inOut",
+    });
+
+    gsap.to(this.positionGroup.position, {
+      y: 0,
+      duration: 1,
+      ease: "power2.inOut",
+    });
+
+    gsap.to(this.dragGroup.rotation, {
+      x: 0,
+      y: 0,
       z: 0,
       duration: 1,
       ease: "power2.inOut",
@@ -310,8 +312,15 @@ export class WebGLApp {
     });
 
     gsap.to(this.positionGroup.rotation, {
-      x: degToRad(-60),
-      z: degToRad(-20),
+      x: degToRad(-70),
+      y: degToRad(20),
+      z: degToRad(45),
+      duration: 1,
+      ease: "power2.inOut",
+    });
+
+    gsap.to(this.positionGroup.position, {
+      y: -0.1,
       duration: 1,
       ease: "power2.inOut",
     });
