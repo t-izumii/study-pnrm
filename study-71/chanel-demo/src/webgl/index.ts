@@ -262,7 +262,7 @@ export class WebGLApp {
 
     // 回転する（x軸とz軸を同時に回転）
     timeline.to(this.group.rotation, {
-      y: Math.PI * 2,
+      y: -Math.PI * 2,
       delay: 0.5,
       duration: 1.5,
       ease: "power2.inOut",
